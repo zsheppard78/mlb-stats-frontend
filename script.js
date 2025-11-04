@@ -16,38 +16,32 @@ const teamThemes = {
     "Tampa Bay Rays": { accent: "#092C5C", highlight: "#8FBCE6", bg: "#00285D" },
     "Toronto Blue Jays": { accent: "#134A8E", highlight: "#1D2D5C", bg: "#0A0C10" },
     "Baltimore Orioles": { accent: "#DF4601", highlight: "#000000", bg: "#0A0C10" },
-
     "Minnesota Twins": { accent: "#002B5C", highlight: "#D31145", bg: "#0A0C10" },
     "Cleveland Guardians": { accent: "#0C2340", highlight: "#E31937", bg: "#0A0C10" },
     "Chicago White Sox": { accent: "#000000", highlight: "#C4CED4", bg: "#0A0C10" },
     "Detroit Tigers": { accent: "#0C2340", highlight: "#FA4616", bg: "#0A0C10" },
     "Kansas City Royals": { accent: "#004687", highlight: "#C09A5B", bg: "#0A0C10" },
-
     "Houston Astros": { accent: "#002D62", highlight: "#EB6E1F", bg: "#0A0C10" },
     "Texas Rangers": { accent: "#003278", highlight: "#C0111F", bg: "#0A0C10" },
     "Seattle Mariners": { accent: "#003278", highlight: "#0C2C56", bg: "#0A0C10" },
     "Los Angeles Angels": { accent: "#BA0021", highlight: "#003263", bg: "#0A0C10" },
     "Oakland Athletics": { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
-
     "Atlanta Braves": { accent: "#0E2340", highlight: "#CE1141", bg: "#0A0C10" },
     "Philadelphia Phillies": { accent: "#E81828", highlight: "#002D72", bg: "#0A0C10" },
     "New York Mets": { accent: "#002D72", highlight: "#FF5910", bg: "#0A0C10" },
     "Miami Marlins": { accent: "#00A3E0", highlight: "#EF3340", bg: "#0A0C10" },
     "Washington Nationals": { accent: "#AB0003", highlight: "#14225A", bg: "#0A0C10" },
-
     "Chicago Cubs": { accent: "#0E3386", highlight: "#CC3433", bg: "#0A0C10" },
     "Milwaukee Brewers": { accent: "#12284B", highlight: "#FFC52F", bg: "#0A0C10" },
     "St. Louis Cardinals": { accent: "#C41E3A", highlight: "#FEDB00", bg: "#0A0C10" },
     "Pittsburgh Pirates": { accent: "#000000", highlight: "#FFB81C", bg: "#0A0C10" },
     "Cincinnati Reds": { accent: "#C6011F", highlight: "#000000", bg: "#0A0C10" },
-
     "Los Angeles Dodgers": { accent: "#005A9C", highlight: "#EF3E42", bg: "#0A0C10" },
     "San Diego Padres": { accent: "#2F241D", highlight: "#FFC425", bg: "#0A0C10" },
     "San Francisco Giants": { accent: "#FD5A1E", highlight: "#27251F", bg: "#0A0C10" },
     "Arizona Diamondbacks": { accent: "#A71930", highlight: "#E3D4AD", bg: "#0A0C10" },
     "Colorado Rockies": { accent: "#33006F", highlight: "#C4CED4", bg: "#0A0C10" }
 };
-
 
 // =========================
 // INIT PAGE
@@ -57,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadFavoriteTeamTheme();
     loadStandings();
 
-    // Hamburger menu
     const menuBtn = document.getElementById("menuBtn");
     const sideMenu = document.getElementById("sideMenu");
     menuBtn.addEventListener("click", () => {
@@ -65,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.toggle("menu-open", isOpen);
     });
 
-    // Reset Theme Button
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
         document.documentElement.style.setProperty('--accent', '#ffd700');
@@ -74,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Theme reset to default!");
     });
 
-    // Close menu clicking outside
     document.addEventListener("click", (e) => {
         if (sideMenu.classList.contains("active") && !sideMenu.contains(e.target) && !menuBtn.contains(e.target)) {
             sideMenu.classList.remove("active");
@@ -82,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Help text
     document.getElementById("helpBtn").addEventListener("click", () => {
         alert("Welcome to MLB Explorer!\n\n" +
             "✅ Open a division to see teams & standings\n" +
@@ -94,13 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-
 // =========================
 // LOAD TEAMS
 // =========================
 async function loadTeams() {
     console.log("Loading standings...");
-    const res = await fetch("/api/teams");
+    const res = await fetch("https://mlb-stats-backend-1.onrender.com/api/teams");
     const data = await res.json();
     const teams = data.teams;
 
@@ -168,7 +157,6 @@ async function loadTeams() {
     });
 }
 
-
 // =========================
 // LOAD STANDINGS TABLES
 // =========================
@@ -187,10 +175,6 @@ async function loadStandings() {
             "https://statsapi.mlb.com/api/v1/standings?leagueId=103,104&season=2024&standingsTypes=regularSeason&hydrate=division"
         );
         const data = await res.json();
-
-        console.log("Standings API data:", data);
-        console.log("Divisions returned:", data.records.map(r => r.division?.name));
-        // ✅ debug line
 
         const records = data.records;
 
@@ -230,7 +214,6 @@ async function loadStandings() {
     }
 }
 
-
 // =========================
 // SAVE THEME
 // =========================
@@ -242,7 +225,6 @@ function loadFavoriteTeamTheme() {
     const name = localStorage.getItem("favoriteTeamTheme");
     if (name && teamThemes[name]) applyTeamTheme(name);
 }
-
 
 // =========================
 // ROSTER MODAL + PLAYER STATS
@@ -260,20 +242,12 @@ async function openRosterModal(team) {
     const players = rosterData.roster;
 
     const groups = {
-        "Starting Pitchers": [],
-        "Relief Pitchers": [],
-        "Pitchers/DH": [],
-        "Catchers": [],
-        "Infielders": [],
-        "Outfielders": []
+        "Starting Pitchers": [], "Relief Pitchers": [], "Pitchers/DH": [],
+        "Catchers": [], "Infielders": [], "Outfielders": []
     };
 
     const map = {
-        SP: "Starting Pitchers",
-        RP: "Relief Pitchers",
-        CP: "Relief Pitchers",
-        LRP: "Relief Pitchers",
-        MRP: "Relief Pitchers",
+        SP: "Starting Pitchers", RP: "Relief Pitchers", CP: "Relief Pitchers", LRP: "Relief Pitchers", MRP: "Relief Pitchers",
         C: "Catchers",
         "1B": "Infielders", "2B": "Infielders", "3B": "Infielders", SS: "Infielders", IF: "Infielders",
         LF: "Outfielders", CF: "Outfielders", RF: "Outfielders", OF: "Outfielders",
@@ -309,7 +283,7 @@ async function openRosterModal(team) {
         people.forEach(p => {
             div.innerHTML += `
                 <div class="player-row" data-id="${p.id}">
-                    <img src="${p.headshot}" class="player-headshot" alt="${p.fullName} headshot" />
+                    <img src="${p.headshot}" class="player-headshot" alt="${p.name} headshot" />
                     <div class="player-info">
                         <strong>${p.name}</strong> (${p.position})<br>
                         AVG: ${p.stats.avg || "—"} | 
@@ -322,7 +296,6 @@ async function openRosterModal(team) {
     }
 }
 
-// Close main roster modal
 document.getElementById("closeModal").addEventListener("click", () => {
     document.getElementById("rosterModal").style.display = "none";
 });
@@ -331,7 +304,6 @@ window.addEventListener("click", e => {
         document.getElementById("rosterModal").style.display = "none";
 });
 
-// Tabs inside roster modal
 document.addEventListener("click", e => {
     if (!e.target.classList.contains("tab-btn")) return;
 
@@ -343,10 +315,6 @@ document.addEventListener("click", e => {
     document.getElementById(tab).classList.add("active");
 });
 
-
-// =========================
-// PLAYER BIO POPUP
-// =========================
 document.addEventListener("click", async e => {
     const row = e.target.closest(".player-row");
     if (!row) return;
