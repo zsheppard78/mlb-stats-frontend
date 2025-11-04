@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baseball Teams Explorer</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<header>
+    <div class="menu-icon" id="menuBtn">☰</div>
+    <h1>⚾ Baseball Teams Explorer</h1>
+
+    <nav id="sideMenu" class="side-menu">
+        <div class="menu-top">
+            <h3>⚙️ Settings</h3>
+            <hr>
+
+            <div class="menu-item">
+                <label for="theme">Theme:</label>
+                <select id="theme">
+                    <option value="classic">Classic (Gold)</option>
+                    <option value="dodger">Dodger Blue</option>
+                    <option value="cardinal">Cardinal Red</option>
+                    <option value="green">Oakland Green</option>
+                    <option value="night">Night Mode</option>
+                </select>
+            </div>
+
+            <div class="menu-item">
+                <button id="resetThemeBtn" class="reset-btn">Reset Theme</button>
+            </div>
+        </div>
+
+        <div class="menu-item help-link" id="helpBtn">
+            ❓ Help & Info
+        </div>
+    </nav>
+</header>
+
+<main>
+
+    <!-- ✅ TEAM ROSTER MODAL -->
+    <div id="rosterModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal">&times;</span>
+            <h2 id="teamNameModal"></h2>
+
+            <div class="roster-tabs">
+                <button class="tab-btn active" data-tab="batters">Batters</button>
+                <button class="tab-btn" data-tab="pitchers">Pitchers/DH</button>
+                <button class="tab-btn" data-tab="catchers">Catchers</button>
+            </div>
+
+            <div id="batters" class="tab-content active"></div>
+            <div id="pitchers" class="tab-content"></div>
+            <div id="catchers" class="tab-content"></div>
+        </div>
+    </div>
+
+    <!-- ✅ PLAYER BIO MODAL -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content player-modal">
+            <span id="closePlayerModal">&times;</span>
+            <img id="playerHeadshot" class="player-modal-img" alt="Player" src="">
+            <h2 id="playerName"></h2>
+            <p id="playerTeam"></p>
+            <p id="playerInfo"></p>
+        </div>
+    </div>
+
+    <!-- ✅ AMERICAN LEAGUE -->
+    <section id="american-league">
+        <h2>American League</h2>
+
+        <details>
+            <summary>East Division</summary>
+            <div id="AL-East-standings" class="standings"></div>
+            <div id="AL-East" class="teams-grid"></div>
+        </details>
+
+        <details>
+            <summary>Central Division</summary>
+            <div id="AL-Central-standings" class="standings"></div>
+            <div id="AL-Central" class="teams-grid"></div>
+        </details>
+
+        <details>
+            <summary>West Division</summary>
+            <div id="AL-West-standings" class="standings"></div>
+            <div id="AL-West" class="teams-grid"></div>
+        </details>
+    </section>
+
+    <!-- ✅ NATIONAL LEAGUE -->
+    <section id="national-league">
+        <h2>National League</h2>
+
+        <details>
+            <summary>East Division</summary>
+            <div id="NL-East-standings" class="standings"></div>
+            <div id="NL-East" class="teams-grid"></div>
+        </details>
+
+        <details>
+            <summary>Central Division</summary>
+            <div id="NL-Central-standings" class="standings"></div>
+            <div id="NL-Central" class="teams-grid"></div>
+        </details>
+
+        <details>
+            <summary>West Division</summary>
+            <div id="NL-West-standings" class="standings"></div>
+            <div id="NL-West" class="teams-grid"></div>
+        </details>
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
