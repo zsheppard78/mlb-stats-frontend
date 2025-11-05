@@ -10,6 +10,15 @@ function applyTeamTheme(teamName) {
     document.documentElement.style.setProperty('--bg', theme.bg);
 }
 
+const uiThemes = {
+    classic: { accent: "#ffd700", highlight: "#00b7ff", bg: "#0b0d11" },
+    dodger: { accent: "#005A9C", highlight: "#ffffff", bg: "#0A0C10" },
+    cardinal: { accent: "#C41E3A", highlight: "#ffffff", bg: "#0A0C10" },
+    green: { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
+    night: { accent: "#ffffff", highlight: "#888888", bg: "#000000" }
+};
+
+
 const teamThemes = {
     "New York Yankees": { accent: "#0C2340", highlight: "#C4CED4", bg: "#0A0C10" },
     "Boston Red Sox": { accent: "#BD3039", highlight: "#0D2B56", bg: "#0A0C10" },
@@ -43,6 +52,17 @@ const teamThemes = {
     "Colorado Rockies": { accent: "#33006F", highlight: "#C4CED4", bg: "#0A0C10" }
 };
 
+function applyUITheme(themeName){
+    const theme = uiThemes[themeName];
+    if(!theme) return;
+
+    document.documentElement.style.setProperty('--accent', theme.accent);
+    document.documentElement.style.setProperty('--highlight', theme.highlight);
+    document.documentElement.style.setProperty('--bg', theme.bg);
+
+    localStorage.setItem("selectedUITheme", themeName);
+}
+
 // =========================
 // INIT PAGE
 // =========================
@@ -57,6 +77,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const isOpen = sideMenu.classList.toggle("active");
         document.body.classList.toggle("menu-open", isOpen);
     });
+
+    const themeSelector = document.getElementById("theme");
+    themeSelector.addEventListener("change", (e) => {
+        applyUITheme(e.target.value);
+    });
+
+    const savedTheme = localStorage.getItem("selectedUITheme");
+    if(savedTheme){
+        themeSelector.value = savedTheme;
+        applyUITheme(savedTheme);
+    }
 
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
