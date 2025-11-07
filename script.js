@@ -1,6 +1,37 @@
 // =========================
 // TEAM THEME SYSTEM
 // =========================
+function showLoading(message = "⏳ Loading MLB data..."){
+    const loader = document.getElementById("loading");
+    if(loader){
+        loader.textContent = message;
+        loader.classList.remove("hidden");
+    }
+}
+
+function hideLoading(){
+    const loader = document.getElementById("loading");
+    if(loader) loader.classList.add("hidden");
+}
+
+async function fetchWithRetry(url, options = {}, retries = 4, delay = 4000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url, options);
+            if (res.ok) return res;
+            throw new Error("Fetch failed");
+        } catch (err) {
+            console.warn(`Attempt ${i + 1} failed... retrying in ${delay / 1000}s`);
+            if (i < retries - 1) {
+                showLoading("⚙️ Server waking up... please wait...");
+                await new Promise(r => setTimeout(r, delay));
+            } else {
+                throw err;
+            }
+        }
+    }
+}
+
 function applyTeamTheme(teamName) {
     const theme = teamThemes[teamName];
     if (!theme) return;
@@ -119,73 +150,95 @@ document.addEventListener("DOMContentLoaded", () => {
 // LOAD TEAMS
 // =========================
 async function loadTeams() {
-    console.log("Loading standings...");
-    const res = await fetch("https://mlb-stats-backend-1.onrender.com/api/teams");
-    const data = await res.json();
-    const teams = data.teams;
+    showLoading("⏳ Loading teams...");
 
-    const divisions = {
-        "American League East": "AL-East",
-        "American League Central": "AL-Central",
-        "American League West": "AL-West",
-        "National League East": "NL-East",
-        "National League Central": "NL-Central",
-        "National League West": "NL-West",
-    };
+    try {
+        const res = await fetchWithRetry("https://mlb-stats-backend-1.onrender.com/api/teams");
+        const data = await res.json();
+        const teams = data.teams;
+        hideLoading();
 
-    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const divisions = {
+            "American League East": "AL-East",
+            "American League Central": "AL-Central",
+            "American League West": "AL-West",
+            "National League East": "NL-East",
+            "National League Central": "NL-Central",
+            "National League West": "NL-West",
+        };
 
-    teams.forEach(team => {
-        const divId = divisions[team.division?.name];
-        if (!divId) return;
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
-        const container = document.getElementById(divId);
+        teams.forEach(team => {
+            const divId = divisions[team.division?.name];
+            if (!divId) return;
 
-        const teamCard = document.createElement("div");
-        teamCard.classList.add("team-card");
-        teamCard.addEventListener("click", () => {
-            applyTeamTheme(team.name);
-            saveFavoriteTeamTheme(team.name);
-            openRosterModal(team);
+            const container = document.getElementById(divId);
+            const teamCard = document.createElement("div");
+            teamCard.classList.add("team-card");
+            teamCard.dataset.teamName = team.name.toLowerCase(); // 👈 for search filter
+
+            teamCard.addEventListener("click", () => {
+                applyTeamTheme(team.name);
+                saveFavoriteTeamTheme(team.name);
+                openRosterModal(team);
+            });
+
+            const logoUrl = `https://www.mlbstatic.com/team-logos/${team.id}.svg`;
+            const isFav = favorites.includes(team.id);
+
+            teamCard.innerHTML = `
+                <img src="${logoUrl}" class="team-logo" alt="${team.name} logo">
+                <p class="team-name">${team.name}</p>
+                <div class="favorite-container">
+                    <span class="favorite-star ${isFav ? "active" : ""}" 
+                        data-id="${team.id}" 
+                        data-name="${team.name}"
+                    >★</span>
+                    <span class="favorite-label">Favorite</span>
+                </div>`;
+
+            container.appendChild(teamCard);
         });
 
-        const logoUrl = `https://www.mlbstatic.com/team-logos/${team.id}.svg`;
-        const isFav = favorites.includes(team.id);
+        // Favorite logic (keep your existing listener)
+        document.querySelectorAll(".favorite-star").forEach(star => {
+            star.addEventListener("click", e => {
+                e.stopPropagation();
+                const id = parseInt(star.dataset.id);
+                const teamName = star.dataset.name;
+                let favs = JSON.parse(localStorage.getItem("favorites")) || [];
 
-        teamCard.innerHTML = `
-            <img src="${logoUrl}" class="team-logo" alt="${team.name} logo">
-            <p class="team-name">${team.name}</p>
-            <div class="favorite-container">
-                <span class="favorite-star ${isFav ? "active" : ""}" 
-                    data-id="${team.id}" 
-                    data-name="${team.name}"
-                >★</span>
-                <span class="favorite-label">Favorite</span>
-            </div>`;
+                if (favs.includes(id)) {
+                    favs = favs.filter(x => x !== id);
+                    star.classList.remove("active");
+                } else {
+                    favs.push(id);
+                    star.classList.add("active");
+                    applyTeamTheme(teamName);
+                    saveFavoriteTeamTheme(teamName);
+                }
 
-        container.appendChild(teamCard);
-    });
-
-    document.querySelectorAll(".favorite-star").forEach(star => {
-        star.addEventListener("click", e => {
-            e.stopPropagation();
-            const id = parseInt(star.dataset.id);
-            const teamName = star.dataset.name;
-            let favs = JSON.parse(localStorage.getItem("favorites")) || [];
-
-            if (favs.includes(id)) {
-                favs = favs.filter(x => x !== id);
-                star.classList.remove("active");
-            } else {
-                favs.push(id);
-                star.classList.add("active");
-                applyTeamTheme(teamName);
-                saveFavoriteTeamTheme(teamName);
-            }
-
-            localStorage.setItem("favorites", JSON.stringify(favs));
+                localStorage.setItem("favorites", JSON.stringify(favs));
+            });
         });
-    });
+
+        // 🔍 Add live search filter
+        const searchBox = document.getElementById("searchTeams");
+        if (searchBox) {
+            searchBox.addEventListener("input", e => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll(".team-card").forEach(card => {
+                    const visible = card.dataset.teamName.includes(query);
+                    card.style.display = visible ? "block" : "none";
+                });
+            });
+        }
+
+    } catch (err) {
+        console.error("Team Load Error:", err);
+        showLoading("⚠️ Unable to load data. Please try refreshing.");
+    }
 }
 
 // =========================
