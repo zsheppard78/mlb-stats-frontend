@@ -42,12 +42,13 @@ function applyTeamTheme(teamName) {
 }
 
 const uiThemes = {
-    classic: { accent: "#ffd700", highlight: "#00b7ff", bg: "#0b0d11" },
+    classic: { accent: "#007BFF", highlight: "#000000", bg: "#ffffff" }, // white + blue
     dodger: { accent: "#005A9C", highlight: "#ffffff", bg: "#0A0C10" },
     cardinal: { accent: "#C41E3A", highlight: "#ffffff", bg: "#0A0C10" },
     green: { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
     night: { accent: "#ffffff", highlight: "#888888", bg: "#000000" }
 };
+
 
 
 const teamThemes = {
@@ -87,9 +88,10 @@ function applyUITheme(themeName){
     const theme = uiThemes[themeName];
     if(!theme) return;
 
-    document.documentElement.style.setProperty('--accent', theme.accent);
-    document.documentElement.style.setProperty('--highlight', theme.highlight);
-    document.documentElement.style.setProperty('--bg', theme.bg);
+    document.documentElement.style.setProperty('--accent', '#007BFF');
+    document.documentElement.style.setProperty('--highlight', '#000000');
+    document.documentElement.style.setProperty('--bg', '#ffffff');
+
 
     localStorage.setItem("selectedUITheme", themeName);
 }
@@ -113,13 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     themeSelector.addEventListener("change", (e) => {
         applyUITheme(e.target.value);
     });
-
-    const savedTheme = localStorage.getItem("selectedUITheme");
-    if(savedTheme){
-        themeSelector.value = savedTheme;
-        applyUITheme(savedTheme);
-    }
-
+    
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
         document.documentElement.style.setProperty('--accent', '#ffd700');
