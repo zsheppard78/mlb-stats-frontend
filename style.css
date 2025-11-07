@@ -3,12 +3,15 @@
 ------------------------------ */
 * {
     transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
 }
 
 :root {
-    --accent: #007BFF;   /* Blue accent */
+    --accent: #007BFF;    /* Bright blue */
     --highlight: #000000; /* Black text */
     --bg: #ffffff;        /* White background */
+    --card: #f4f8ff;      /* Light blue card */
+    --border: #cfdfff;    /* Soft blue border */
 }
 
 body {
@@ -20,6 +23,7 @@ body {
     transition: background-color .3s ease, color .3s ease;
 }
 
+/* Headings */
 h1, h2, h3 {
     color: var(--accent);
 }
@@ -29,10 +33,13 @@ h1, h2, h3 {
 ------------------------------ */
 header {
     background: #e9f2ff;
-    padding: 35px 20px;
+    padding: 50px 20px;
     text-align: center;
-    border-bottom: 2px solid var(--accent);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 3px solid var(--accent);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 h1 {
@@ -46,7 +53,8 @@ h1 {
    MAIN + SECTIONS
 ------------------------------ */
 main {
-    padding: 20px 40px;
+    background: var(--bg);
+    padding: 40px 60px;
     display: flex;
     flex-direction: column;
     gap: 40px;
@@ -57,15 +65,17 @@ h2 {
     margin-bottom: 10px;
 }
 
+/* -----------------------------
+   DETAILS (Divisions)
+------------------------------ */
 details {
-    background: #f8f9fa;
-    border: 1px solid var(--accent);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 6px 8px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
-
 summary {
     cursor: pointer;
     color: var(--highlight);
@@ -79,40 +89,36 @@ summary {
 .teams-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 40px;
-    margin-top: 10px;
+    gap: 35px;
+    margin-top: 15px;
 }
 
 .team-card {
-    background: #ffffff;
-    border: 1px solid #dcdcdc;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    text-align: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
     animation: fadeInUp 0.5s ease forwards;
 }
-
 .team-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
 }
 
 .team-logo {
-    width: 80px;
-    height: 80px;
+    width: 85px;
+    height: 85px;
     object-fit: contain;
     margin-bottom: 8px;
-    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.1));
 }
-
 .team-name {
-    font-size: 0.95rem;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--highlight);
-    margin: 0;
-    text-align: center;
-    white-space: nowrap;
 }
 
 /* -----------------------------
@@ -125,26 +131,21 @@ summary {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
 }
-
 .favorite-star {
     font-size: 1.4rem;
     cursor: pointer;
     color: gray;
-    transition: color 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s ease;
 }
-
 .favorite-star.active {
     color: var(--accent);
-    transform: scale(1.2);
+    transform: scale(1.15);
     text-shadow: 0 0 6px var(--accent);
 }
-
 .favorite-star:hover {
-    color: var(--highlight);
+    color: var(--accent);
 }
-
 .favorite-label {
     font-size: 0.8rem;
     color: #555;
@@ -160,7 +161,7 @@ summary {
     left: -260px;
     width: 240px;
     height: 100%;
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     border-right: 2px solid var(--accent);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -169,22 +170,10 @@ summary {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    backdrop-filter: blur(10px);
 }
-
-.side-menu.active {
-    left: 0;
-}
-
-.side-menu h3 {
-    color: var(--accent);
-    margin-top: 0;
-}
-
-.menu-item {
-    margin: 15px 0;
-    color: var(--highlight);
-}
+.side-menu.active { left: 0; }
+.side-menu h3 { color: var(--accent); margin-top: 0; }
+.menu-item { color: var(--highlight); margin: 15px 0; }
 
 .menu-item select {
     width: 100%;
@@ -201,10 +190,7 @@ summary {
     color: var(--accent);
     padding-top: 10px;
 }
-.help-link:hover {
-    text-decoration: underline;
-    opacity: 0.8;
-}
+.help-link:hover { text-decoration: underline; }
 
 .menu-icon {
     font-size: 1.8rem;
@@ -213,13 +199,8 @@ summary {
     top: 35px;
     left: 40px;
     color: var(--accent);
-    z-index: 200;
 }
-
-.menu-icon:hover {
-    transform: rotate(10deg);
-    color: var(--highlight);
-}
+.menu-icon:hover { transform: rotate(10deg); }
 
 /* Dim screen behind menu */
 body.menu-open::before {
@@ -237,12 +218,11 @@ body.menu-open::before {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.65);
     justify-content: center;
     align-items: center;
     z-index: 5000;
 }
-
 .modal-content {
     background: #ffffff;
     padding: 20px;
@@ -253,7 +233,6 @@ body.menu-open::before {
     border: 2px solid var(--accent);
     color: var(--highlight);
 }
-
 #closeModal {
     float: right;
     font-size: 1.8rem;
@@ -274,10 +253,7 @@ body.menu-open::before {
     gap: 10px;
     cursor: pointer;
 }
-
-.player-row:hover {
-    background: #e9f2ff;
-}
+.player-row:hover { background: #e9f2ff; }
 
 .player-headshot {
     width: 55px;
@@ -286,7 +262,6 @@ body.menu-open::before {
     object-fit: cover;
     border: 2px solid var(--accent);
 }
-
 .player-info {
     line-height: 1.2;
     font-size: 0.9rem;
@@ -300,7 +275,6 @@ body.menu-open::before {
     gap: 10px;
     margin-bottom: 12px;
 }
-
 .tab-btn {
     padding: 8px 14px;
     background: #ffffff;
@@ -310,19 +284,12 @@ body.menu-open::before {
     cursor: pointer;
     font-weight: 600;
 }
-
 .tab-btn.active {
     background: var(--accent);
     color: #ffffff;
 }
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
 /* -----------------------------
    PLAYER BIO MODAL
@@ -336,7 +303,6 @@ body.menu-open::before {
     border-radius: 12px;
     color: var(--highlight);
 }
-
 .player-modal-img {
     width: 150px;
     height: 150px;
@@ -344,12 +310,10 @@ body.menu-open::before {
     object-fit: cover;
     margin-bottom: 10px;
 }
-
 #playerModal h2 {
     margin: 5px 0;
     color: var(--accent);
 }
-
 #playerModal p {
     margin: 5px 0;
     color: var(--highlight);
@@ -361,7 +325,7 @@ body.menu-open::before {
 .reset-btn {
     width: 100%;
     padding: 8px;
-    background: #007BFF;
+    background: var(--accent);
     border: 2px solid #0056b3;
     border-radius: 6px;
     color: white;
@@ -382,25 +346,21 @@ body.menu-open::before {
     text-align: center;
     color: var(--highlight);
 }
-
 .standings table {
     width: 90%;
     margin: 0 auto 10px;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
-
 .standings th, .standings td {
     border: 1px solid var(--accent);
     padding: 6px;
 }
-
 .standings th {
     background: var(--accent);
     color: #ffffff;
     font-weight: bold;
 }
-
 details > div.standings {
     margin-top: 10px;
     padding: 0;
@@ -408,7 +368,7 @@ details > div.standings {
 }
 
 /* -----------------------------
-   ANIMATIONS & MEDIA
+   ANIMATIONS + MEDIA
 ------------------------------ */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(15px); }
@@ -417,15 +377,18 @@ details > div.standings {
 
 @media (max-width: 768px) {
     main {
-        padding: 15px;
+        padding: 20px;
         gap: 20px;
     }
-    h1 { font-size: 1.6em; }
+    h1 { font-size: 1.8em; }
     .teams-grid { gap: 20px; }
     .team-logo { width: 65px; height: 65px; }
     .side-menu { width: 80%; }
 }
 
+/* -----------------------------
+   LOADING MESSAGE
+------------------------------ */
 .loading {
     text-align: center;
     color: var(--accent);
@@ -433,25 +396,9 @@ details > div.standings {
     margin-top: 20px;
     animation: pulse 1s infinite;
 }
-
 @keyframes pulse {
     0% { opacity: 0.4; }
     50% { opacity: 1; }
     100% { opacity: 0.4; }
 }
-
 .hidden { display: none; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
