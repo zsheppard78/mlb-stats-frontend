@@ -5,30 +5,34 @@
     transition: all 0.2s ease-in-out;
 }
 
-:root{
-    --accent: #ffd700;   /* default gold */
-    --highlight: #00b7ff;/* default cyan/blue */
-    --bg: #0b0d11;       /* default dark background */
+:root {
+    --accent: #007BFF;   /* Blue accent */
+    --highlight: #000000; /* Black text */
+    --bg: #ffffff;        /* White background */
 }
 
 body {
     font-family: "Poppins", sans-serif;
-    background: radial-gradient(circle at top left, #10141d, #0b0d11 60%);
+    background-color: var(--bg);
     color: var(--highlight);
     margin: 0;
     padding: 0;
     transition: background-color .3s ease, color .3s ease;
 }
 
+h1, h2, h3 {
+    color: var(--accent);
+}
+
 /* -----------------------------
    HEADER
 ------------------------------ */
 header {
-    background: linear-gradient(90deg, #141820, #20242e);
-    padding: 30px 20px;
+    background: #e9f2ff;
+    padding: 35px 20px;
     text-align: center;
     border-bottom: 2px solid var(--accent);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
@@ -54,11 +58,12 @@ h2 {
 }
 
 details {
-    background: #141820;
+    background: #f8f9fa;
     border: 1px solid var(--accent);
     border-radius: 8px;
-    padding: 4px 6px;
+    padding: 6px 8px;
     margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 summary {
@@ -78,24 +83,33 @@ summary {
     margin-top: 10px;
 }
 
-.team-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.25);
+.team-card {
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    animation: fadeInUp 0.5s ease forwards;
 }
 
+.team-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
 
 .team-logo {
     width: 80px;
     height: 80px;
     object-fit: contain;
     margin-bottom: 8px;
-    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.1));
 }
 
 .team-name {
     font-size: 0.95rem;
     font-weight: 500;
-    color: #fff;
+    color: var(--highlight);
     margin: 0;
     text-align: center;
     white-space: nowrap;
@@ -104,19 +118,6 @@ summary {
 /* -----------------------------
    FAVORITES
 ------------------------------ */
-.team-card {
-    position: relative;  /* Needed for positioning the star */
-    background: #111;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transition: transform .2s ease, box-shadow .2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-}
-
 .favorite-container {
     position: absolute;
     top: 8px;
@@ -133,23 +134,23 @@ summary {
     color: gray;
     transition: color 0.2s ease, transform 0.1s ease;
 }
+
 .favorite-star.active {
     color: var(--accent);
     transform: scale(1.2);
+    text-shadow: 0 0 6px var(--accent);
 }
+
 .favorite-star:hover {
     color: var(--highlight);
 }
 
 .favorite-label {
-    font-size: 0.9rem;
-    color: #ccc;
+    font-size: 0.8rem;
+    color: #555;
     user-select: none;
 }
 
-.favorite-star:hover{
-    color: var(--highlight);
-}
 /* -----------------------------
    SIDE MENU
 ------------------------------ */
@@ -159,15 +160,16 @@ summary {
     left: -260px;
     width: 240px;
     height: 100%;
-    background-color: #141820;
+    background: rgba(255, 255, 255, 0.95);
     border-right: 2px solid var(--accent);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
     transition: left 0.3s ease;
     z-index: 150;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    backdrop-filter: blur(10px);
 }
 
 .side-menu.active {
@@ -181,25 +183,25 @@ summary {
 
 .menu-item {
     margin: 15px 0;
-    color: #fff;
+    color: var(--highlight);
 }
 
 .menu-item select {
     width: 100%;
     padding: 6px;
-    background: #1a1d25;
+    background: #f0f0f0;
     border: 1px solid var(--accent);
     border-radius: 6px;
-    color: #fff;
+    color: var(--highlight);
 }
 
-.help-link{
+.help-link {
     cursor: pointer;
     font-weight: 600;
     color: var(--accent);
     padding-top: 10px;
 }
-.help-link:hover{
+.help-link:hover {
     text-decoration: underline;
     opacity: 0.8;
 }
@@ -214,43 +216,45 @@ summary {
     z-index: 200;
 }
 
+.menu-icon:hover {
+    transform: rotate(10deg);
+    color: var(--highlight);
+}
+
 /* Dim screen behind menu */
 body.menu-open::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.4);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 
 /* -----------------------------
    ROSTER MODAL
 ------------------------------ */
-.modal{
+.modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0, 0, 0, 0.75);
     justify-content: center;
     align-items: center;
     z-index: 5000;
 }
 
-.modal-content{
-    background: #12151c;
+.modal-content {
+    background: #ffffff;
     padding: 20px;
     width: 80%;
     max-height: 80vh;
     overflow-y: auto;
     border-radius: 10px;
     border: 2px solid var(--accent);
-    color: white;
+    color: var(--highlight);
 }
 
-#closeModal{
+#closeModal {
     float: right;
     font-size: 1.8rem;
     cursor: pointer;
@@ -262,8 +266,8 @@ body.menu-open::before {
 .player-row {
     display: flex;
     align-items: center;
-    background: #1a1d25;
-    border: 1px solid var(--accent);
+    background: #f8f9fa;
+    border: 1px solid #dcdcdc;
     border-radius: 8px;
     padding: 8px;
     margin: 6px 0;
@@ -271,12 +275,16 @@ body.menu-open::before {
     cursor: pointer;
 }
 
+.player-row:hover {
+    background: #e9f2ff;
+}
+
 .player-headshot {
     width: 55px;
     height: 55px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--highlight);
+    border: 2px solid var(--accent);
 }
 
 .player-info {
@@ -295,21 +303,23 @@ body.menu-open::before {
 
 .tab-btn {
     padding: 8px 14px;
-    background: #1a1d25;
-    border: 2px solid var(--highlight);
-    color: white;
+    background: #ffffff;
+    border: 2px solid var(--accent);
+    color: var(--highlight);
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
 }
+
 .tab-btn.active {
-    background: var(--highlight);
-    color: #000;
+    background: var(--accent);
+    color: #ffffff;
 }
 
 .tab-content {
     display: none;
 }
+
 .tab-content.active {
     display: block;
 }
@@ -321,9 +331,10 @@ body.menu-open::before {
     max-width: 420px;
     text-align: center;
     padding: 20px;
-    background: #1a1d25;
+    background: #ffffff;
     border: 2px solid var(--accent);
     border-radius: 12px;
+    color: var(--highlight);
 }
 
 .player-modal-img {
@@ -341,68 +352,67 @@ body.menu-open::before {
 
 #playerModal p {
     margin: 5px 0;
-    color: #ddd;
+    color: var(--highlight);
 }
 
-.reset-btn{
+/* -----------------------------
+   BUTTONS
+------------------------------ */
+.reset-btn {
     width: 100%;
     padding: 8px;
-    background: #8b0000;
-    border: 2px solid #ff4444;
+    background: #007BFF;
+    border: 2px solid #0056b3;
     border-radius: 6px;
     color: white;
     cursor: pointer;
     font-weight: 600;
     margin-top: 8px;
 }
-
-.reset-btn:hover{
-    background: #ff4444;
+.reset-btn:hover {
+    background: #0056b3;
 }
 
-.standings{
+/* -----------------------------
+   STANDINGS TABLE
+------------------------------ */
+.standings {
     width: 100%;
     margin: 10px 0 15px;
     text-align: center;
     color: var(--highlight);
 }
 
-.standings table{
+.standings table {
     width: 90%;
     margin: 0 auto 10px;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
 
-.standings th, .standings td{
+.standings th, .standings td {
     border: 1px solid var(--accent);
     padding: 6px;
 }
 
-.standings th{
-    background: #1a1d25;
+.standings th {
+    background: var(--accent);
+    color: #ffffff;
     font-weight: bold;
 }
+
 details > div.standings {
     margin-top: 10px;
     padding: 0;
     display: block;
 }
 
-details[open] .standings {
-    display: block;
-}
-
-details .standings table {
-    margin-top: 10px;
-}
-
+/* -----------------------------
+   ANIMATIONS & MEDIA
+------------------------------ */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
-}
-.team-card {
-    animation: fadeInUp 0.5s ease forwards;
 }
 
 @media (max-width: 768px) {
@@ -414,28 +424,6 @@ details .standings table {
     .teams-grid { gap: 20px; }
     .team-logo { width: 65px; height: 65px; }
     .side-menu { width: 80%; }
-}
-
-h1, h2 {
-    text-shadow: 0 0 8px rgba(255,215,0,0.4);
-}
-
-.team-logo {
-    filter: drop-shadow(0 0 6px var(--accent));
-}
-
-.favorite-star.active {
-    text-shadow: 0 0 6px var(--accent);
-}
-
-.side-menu {
-    backdrop-filter: blur(10px);
-    background: rgba(20, 24, 32, 0.95);
-}
-
-.menu-icon:hover {
-    transform: rotate(10deg);
-    color: var(--highlight);
 }
 
 .loading {
@@ -453,6 +441,3 @@ h1, h2 {
 }
 
 .hidden { display: none; }
-
-
-
