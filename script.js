@@ -222,18 +222,18 @@ async function loadTeams() {
                 localStorage.setItem("favorites", JSON.stringify(favs));
             });
         });
-
-        // 🔍 Add live search filter
+// 🔍 Working live search filter
         const searchBox = document.getElementById("searchTeams");
         if (searchBox) {
             searchBox.addEventListener("input", e => {
                 const query = e.target.value.toLowerCase();
                 document.querySelectorAll(".team-card").forEach(card => {
-                    const visible = card.dataset.teamName.includes(query);
-                    card.style.display = visible ? "block" : "none";
+                    const teamName = card.dataset.teamName || "";
+                    card.style.display = teamName.includes(query) ? "flex" : "none";
                 });
             });
         }
+
 
     } catch (err) {
         console.error("Team Load Error:", err);
