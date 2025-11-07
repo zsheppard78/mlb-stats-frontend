@@ -25,15 +25,17 @@ body {
 ------------------------------ */
 header {
     background: linear-gradient(90deg, #141820, #20242e);
-    padding: 20px;
+    padding: 30px 20px;
     text-align: center;
     border-bottom: 2px solid var(--accent);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
     margin: 0;
     color: var(--accent);
-    font-size: 2em;
+    font-size: 2.4em;
+    letter-spacing: 1px;
 }
 
 /* -----------------------------
@@ -76,15 +78,6 @@ summary {
     margin-top: 10px;
 }
 
-.team-card {
-    background: #141820;
-    border-radius: 16px;
-    padding: 15px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    transform: translateY(0);
-}
-
 .team-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 8px 25px rgba(255, 215, 0, 0.25);
@@ -111,23 +104,41 @@ summary {
 /* -----------------------------
    FAVORITES
 ------------------------------ */
-.favorite-container {
+.team-card {
+    position: relative;  /* Needed for positioning the star */
+    background: #111;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform .2s ease, box-shadow .2s ease;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
+    padding: 15px;
+}
+
+.favorite-container {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
 }
 
 .favorite-star {
     font-size: 1.4rem;
     cursor: pointer;
     color: gray;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.1s ease;
 }
-
 .favorite-star.active {
     color: var(--accent);
+    transform: scale(1.2);
+}
+.favorite-star:hover {
+    color: var(--highlight);
 }
 
 .favorite-label {
@@ -136,6 +147,9 @@ summary {
     user-select: none;
 }
 
+.favorite-star:hover{
+    color: var(--highlight);
+}
 /* -----------------------------
    SIDE MENU
 ------------------------------ */
@@ -194,7 +208,7 @@ summary {
     font-size: 1.8rem;
     cursor: pointer;
     position: absolute;
-    top: 15px;
+    top: 35px;
     left: 40px;
     color: var(--accent);
     z-index: 200;
