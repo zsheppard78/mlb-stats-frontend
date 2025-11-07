@@ -117,6 +117,12 @@ document.addEventListener("DOMContentLoaded", () => {
         applyUITheme(e.target.value);
     });
 
+    // Apply saved or default UI theme on load
+    const savedTheme = localStorage.getItem("selectedUITheme") || "classic";
+    themeSelector.value = savedTheme;
+    applyUITheme(savedTheme);
+
+
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
         document.documentElement.style.setProperty('--accent', '#007BFF');
