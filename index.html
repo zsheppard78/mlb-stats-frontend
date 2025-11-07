@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Baseball Teams Explorer</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>MLB Stats Explorer ⚾</title>
+
+    <!-- Meta for SEO & sharing -->
+    <meta name="description" content="Explore MLB team stats, rosters, and standings with a sleek, dynamic interface. Built by Zachary Sheppard." />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://www.mlbstatic.com/team-logos/158.svg">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css?v=5" />
 </head>
 
 <body>
-
 <header>
     <div class="menu-icon" id="menuBtn">☰</div>
-    <h1>⚾ Baseball Teams Explorer</h1>
+    <h1>⚾ MLB Stats Explorer</h1>
 
     <nav id="sideMenu" class="side-menu">
         <div class="menu-top">
@@ -34,13 +44,24 @@
             </div>
         </div>
 
-        <div class="menu-item help-link" id="helpBtn">
-            ❓ Help & Info
-        </div>
+        <div class="menu-item help-link" id="helpBtn">❓ Help & Info</div>
     </nav>
 </header>
 
 <main>
+
+    <!-- 🔎 SEARCH BAR -->
+    <div style="text-align:center; margin-bottom:20px;">
+        <input
+                type="text"
+                id="searchTeams"
+                placeholder="Search teams..."
+                style="padding:8px 14px; border-radius:6px; border:1px solid var(--accent); background:#141820; color:white; width:60%; max-width:400px;"
+        />
+    </div>
+
+    <!-- ⏳ LOADING / SERVER WAKE MESSAGE -->
+    <div id="loading" class="loading hidden">⏳ Loading MLB data...</div>
 
     <!-- ✅ TEAM ROSTER MODAL -->
     <div id="rosterModal" class="modal">
@@ -119,6 +140,11 @@
 
 </main>
 
-<script src="script.js"></script>
+<footer style="text-align:center; padding:20px; color:#888;">
+    ⚾ Built by Zachary Sheppard — MLB Stats Explorer © 2025
+</footer>
+
+<!-- Updated script version for cache busting -->
+<script src="script.js?v=7"></script>
 </body>
 </html>
