@@ -84,17 +84,18 @@ const teamThemes = {
     "Colorado Rockies": { accent: "#33006F", highlight: "#C4CED4", bg: "#0A0C10" }
 };
 
-function applyUITheme(themeName){
+function applyUITheme(themeName) {
     const theme = uiThemes[themeName];
-    if(!theme) return;
+    if (!theme) return;
 
-    document.documentElement.style.setProperty('--accent', '#007BFF');
-    document.documentElement.style.setProperty('--highlight', '#000000');
-    document.documentElement.style.setProperty('--bg', '#ffffff');
-
+    // Apply the selected theme normally
+    document.documentElement.style.setProperty('--accent', theme.accent);
+    document.documentElement.style.setProperty('--highlight', theme.highlight);
+    document.documentElement.style.setProperty('--bg', theme.bg);
 
     localStorage.setItem("selectedUITheme", themeName);
 }
+
 
 // =========================
 // INIT PAGE
@@ -115,14 +116,16 @@ document.addEventListener("DOMContentLoaded", () => {
     themeSelector.addEventListener("change", (e) => {
         applyUITheme(e.target.value);
     });
-    
+
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
-        document.documentElement.style.setProperty('--accent', '#ffd700');
-        document.documentElement.style.setProperty('--highlight', '#00b7ff');
-        document.documentElement.style.setProperty('--bg', '#0b0d11');
-        alert("Theme reset to default!");
+        document.documentElement.style.setProperty('--accent', '#007BFF');
+        document.documentElement.style.setProperty('--highlight', '#000000');
+        document.documentElement.style.setProperty('--bg', '#ffffff');
+        alert("Theme reset to default (White + Blue)!");
     });
+
+
 
     document.addEventListener("click", (e) => {
         if (sideMenu.classList.contains("active") && !sideMenu.contains(e.target) && !menuBtn.contains(e.target)) {
