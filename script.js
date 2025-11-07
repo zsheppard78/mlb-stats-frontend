@@ -52,37 +52,41 @@ const uiThemes = {
 
 
 const teamThemes = {
-    "New York Yankees": { accent: "#0C2340", highlight: "#C4CED4", bg: "#0A0C10" },
-    "Boston Red Sox": { accent: "#BD3039", highlight: "#0D2B56", bg: "#0A0C10" },
-    "Tampa Bay Rays": { accent: "#092C5C", highlight: "#8FBCE6", bg: "#00285D" },
-    "Toronto Blue Jays": { accent: "#134A8E", highlight: "#1D2D5C", bg: "#0A0C10" },
-    "Baltimore Orioles": { accent: "#DF4601", highlight: "#000000", bg: "#0A0C10" },
-    "Minnesota Twins": { accent: "#002B5C", highlight: "#D31145", bg: "#0A0C10" },
-    "Cleveland Guardians": { accent: "#0C2340", highlight: "#E31937", bg: "#0A0C10" },
-    "Chicago White Sox": { accent: "#000000", highlight: "#C4CED4", bg: "#0A0C10" },
-    "Detroit Tigers": { accent: "#0C2340", highlight: "#FA4616", bg: "#0A0C10" },
-    "Kansas City Royals": { accent: "#004687", highlight: "#C09A5B", bg: "#0A0C10" },
-    "Houston Astros": { accent: "#002D62", highlight: "#EB6E1F", bg: "#0A0C10" },
-    "Texas Rangers": { accent: "#003278", highlight: "#C0111F", bg: "#0A0C10" },
-    "Seattle Mariners": { accent: "#003278", highlight: "#0C2C56", bg: "#0A0C10" },
-    "Los Angeles Angels": { accent: "#BA0021", highlight: "#003263", bg: "#0A0C10" },
-    "Oakland Athletics": { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
-    "Atlanta Braves": { accent: "#0E2340", highlight: "#CE1141", bg: "#0A0C10" },
-    "Philadelphia Phillies": { accent: "#E81828", highlight: "#002D72", bg: "#0A0C10" },
-    "New York Mets": { accent: "#002D72", highlight: "#FF5910", bg: "#0A0C10" },
-    "Miami Marlins": { accent: "#00A3E0", highlight: "#EF3340", bg: "#0A0C10" },
-    "Washington Nationals": { accent: "#AB0003", highlight: "#14225A", bg: "#0A0C10" },
-    "Chicago Cubs": { accent: "#0E3386", highlight: "#CC3433", bg: "#0A0C10" },
-    "Milwaukee Brewers": { accent: "#12284B", highlight: "#FFC52F", bg: "#0A0C10" },
-    "St. Louis Cardinals": { accent: "#C41E3A", highlight: "#FEDB00", bg: "#0A0C10" },
-    "Pittsburgh Pirates": { accent: "#000000", highlight: "#FFB81C", bg: "#0A0C10" },
-    "Cincinnati Reds": { accent: "#C6011F", highlight: "#000000", bg: "#0A0C10" },
-    "Los Angeles Dodgers": { accent: "#005A9C", highlight: "#EF3E42", bg: "#0A0C10" },
-    "San Diego Padres": { accent: "#2F241D", highlight: "#FFC425", bg: "#0A0C10" },
-    "San Francisco Giants": { accent: "#FD5A1E", highlight: "#27251F", bg: "#0A0C10" },
-    "Arizona Diamondbacks": { accent: "#A71930", highlight: "#E3D4AD", bg: "#0A0C10" },
-    "Colorado Rockies": { accent: "#33006F", highlight: "#C4CED4", bg: "#0A0C10" }
+    "New York Yankees": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
+    "Boston Red Sox": { accent: "#BD3039", highlight: "#000000", bg: "#f8f9fa" },
+    "Tampa Bay Rays": { accent: "#092C5C", highlight: "#000000", bg: "#f8f9fa" },
+    "Toronto Blue Jays": { accent: "#134A8E", highlight: "#000000", bg: "#f8f9fa" },
+    "Baltimore Orioles": { accent: "#DF4601", highlight: "#000000", bg: "#f8f9fa" },
+    "Minnesota Twins": { accent: "#002B5C", highlight: "#000000", bg: "#f8f9fa" },
+    "Cleveland Guardians": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
+    "Chicago White Sox": { accent: "#000000", highlight: "#000000", bg: "#f8f9fa" },
+    "Detroit Tigers": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
+    "Kansas City Royals": { accent: "#004687", highlight: "#000000", bg: "#f8f9fa" },
+    "Houston Astros": { accent: "#002D62", highlight: "#000000", bg: "#f8f9fa" },
+    "Texas Rangers": { accent: "#003278", highlight: "#000000", bg: "#f8f9fa" },
+    "Seattle Mariners": { accent: "#0C2C56", highlight: "#000000", bg: "#f8f9fa" },
+    "Los Angeles Angels": { accent: "#BA0021", highlight: "#000000", bg: "#f8f9fa" },
+    "Oakland Athletics": { accent: "#003831", highlight: "#000000", bg: "#f8f9fa" },
+
+    "Atlanta Braves": { accent: "#0E2340", highlight: "#000000", bg: "#f8f9fa" },
+    "Philadelphia Phillies": { accent: "#E81828", highlight: "#000000", bg: "#f8f9fa" },
+    "New York Mets": { accent: "#002D72", highlight: "#000000", bg: "#f8f9fa" },
+    "Miami Marlins": { accent: "#00A3E0", highlight: "#000000", bg: "#f8f9fa" },
+    "Washington Nationals": { accent: "#AB0003", highlight: "#000000", bg: "#f8f9fa" },
+
+    "Chicago Cubs": { accent: "#0E3386", highlight: "#000000", bg: "#f8f9fa" },
+    "Milwaukee Brewers": { accent: "#12284B", highlight: "#000000", bg: "#f8f9fa" },
+    "St. Louis Cardinals": { accent: "#C41E3A", highlight: "#000000", bg: "#f8f9fa" },
+    "Pittsburgh Pirates": { accent: "#FFB81C", highlight: "#000000", bg: "#f8f9fa" },
+    "Cincinnati Reds": { accent: "#C6011F", highlight: "#000000", bg: "#f8f9fa" },
+
+    "Los Angeles Dodgers": { accent: "#005A9C", highlight: "#000000", bg: "#f8f9fa" },
+    "San Diego Padres": { accent: "#2F241D", highlight: "#000000", bg: "#f8f9fa" },
+    "San Francisco Giants": { accent: "#FD5A1E", highlight: "#000000", bg: "#f8f9fa" },
+    "Arizona Diamondbacks": { accent: "#A71930", highlight: "#000000", bg: "#f8f9fa" },
+    "Colorado Rockies": { accent: "#33006F", highlight: "#000000", bg: "#f8f9fa" }
 };
+
 
 function applyUITheme(themeName) {
     const theme = uiThemes[themeName];
