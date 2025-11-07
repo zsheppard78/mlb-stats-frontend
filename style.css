@@ -1,6 +1,9 @@
 /* -----------------------------
    BASE / GLOBAL
 ------------------------------ */
+* {
+    transition: all 0.2s ease-in-out;
+}
 
 :root{
     --accent: #ffd700;   /* default gold */
@@ -10,7 +13,7 @@
 
 body {
     font-family: "Poppins", sans-serif;
-    background-color: var(--bg);
+    background: radial-gradient(circle at top left, #10141d, #0b0d11 60%);
     color: var(--highlight);
     margin: 0;
     padding: 0;
@@ -67,34 +70,26 @@ summary {
    TEAM GRID + CARDS
 ------------------------------ */
 .teams-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 100px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 40px;
     margin-top: 10px;
 }
 
 .team-card {
-    background: #1a1d25;
-    border: 1px solid var(--highlight);
-    border-radius: 12px;
+    background: #141820;
+    border-radius: 16px;
+    padding: 15px;
     text-align: center;
-    padding: 10px;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-    margin: 8px;
-    width: 160px;
-    height: 160px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transform: translateY(0);
 }
 
 .team-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent);
+    transform: translateY(-6px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.25);
 }
+
 
 .team-logo {
     width: 80px;
@@ -387,3 +382,63 @@ details[open] .standings {
 details .standings table {
     margin-top: 10px;
 }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.team-card {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 15px;
+        gap: 20px;
+    }
+    h1 { font-size: 1.6em; }
+    .teams-grid { gap: 20px; }
+    .team-logo { width: 65px; height: 65px; }
+    .side-menu { width: 80%; }
+}
+
+h1, h2 {
+    text-shadow: 0 0 8px rgba(255,215,0,0.4);
+}
+
+.team-logo {
+    filter: drop-shadow(0 0 6px var(--accent));
+}
+
+.favorite-star.active {
+    text-shadow: 0 0 6px var(--accent);
+}
+
+.side-menu {
+    backdrop-filter: blur(10px);
+    background: rgba(20, 24, 32, 0.95);
+}
+
+.menu-icon:hover {
+    transform: rotate(10deg);
+    color: var(--highlight);
+}
+
+.loading {
+    text-align: center;
+    color: var(--accent);
+    font-size: 1.3rem;
+    margin-top: 20px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+
+.hidden { display: none; }
+
+
+
