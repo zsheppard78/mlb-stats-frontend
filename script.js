@@ -458,14 +458,20 @@ window.addEventListener("click", e => {
         document.getElementById("playerModal").style.display = "none";
 });
 
-document.querySelectorAll("a, .menu-item").forEach(link => {
-    link.addEventListener("click", e => {
-        const href = link.getAttribute("href");
-        if (!href || href.startsWith("#")) return;
+document.querySelectorAll("a[href]").forEach(link => {
+    const href = link.getAttribute("href");
 
+    // Ignore empty or placeholder links
+    if (!href || href === "#" || href.startsWith("javascript")) return;
+
+    // Only fade-out pages when navigating to another HTML file
+    if (!href.endsWith(".html")) return;
+
+    link.addEventListener("click", e => {
         e.preventDefault();
         document.body.classList.add("fade-out");
         setTimeout(() => window.location.href = href, 300);
     });
 });
+
 
