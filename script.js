@@ -123,10 +123,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const menuBtn = document.getElementById("menuBtn");
     const sideMenu = document.getElementById("sideMenu");
-    menuBtn.addEventListener("click", () => {
-        const isOpen = sideMenu.classList.toggle("active");
-        document.body.classList.toggle("menu-open", isOpen);
-    });
+
+    if (menuBtn && sideMenu) {
+        menuBtn.addEventListener("click", () => {
+            const isOpen = sideMenu.classList.toggle("active");
+            document.body.classList.toggle("menu-open", isOpen);
+        });
+    }
 
     const themeSelector = document.getElementById("theme");
     themeSelector.addEventListener("change", (e) => {
