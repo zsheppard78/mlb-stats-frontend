@@ -42,50 +42,53 @@ function applyTeamTheme(teamName) {
 }
 
 const uiThemes = {
-    classic: { accent: "#007BFF", highlight: "#000000", bg: "#ffffff" }, // white + blue
-    dodger: { accent: "#005A9C", highlight: "#ffffff", bg: "#0A0C10" },
-    cardinal: { accent: "#C41E3A", highlight: "#ffffff", bg: "#0A0C10" },
-    green: { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
+    classic: { accent: "#007BFF", highlight: "#000000", bg: "#ffffff" },
+    cleanblue: { accent: "#0051A8", highlight: "#1A1A1A", bg: "#F9FBFF" },
+    graysoft: { accent: "#444444", highlight: "#222", bg: "#FAFAFA" },
     night: { accent: "#ffffff", highlight: "#888888", bg: "#000000" }
 };
 
 
 
+
 const teamThemes = {
-    "New York Yankees": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
-    "Boston Red Sox": { accent: "#BD3039", highlight: "#000000", bg: "#f8f9fa" },
-    "Tampa Bay Rays": { accent: "#092C5C", highlight: "#000000", bg: "#f8f9fa" },
-    "Toronto Blue Jays": { accent: "#134A8E", highlight: "#000000", bg: "#f8f9fa" },
-    "Baltimore Orioles": { accent: "#DF4601", highlight: "#000000", bg: "#f8f9fa" },
-    "Minnesota Twins": { accent: "#002B5C", highlight: "#000000", bg: "#f8f9fa" },
-    "Cleveland Guardians": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
-    "Chicago White Sox": { accent: "#000000", highlight: "#000000", bg: "#f8f9fa" },
-    "Detroit Tigers": { accent: "#0C2340", highlight: "#000000", bg: "#f8f9fa" },
-    "Kansas City Royals": { accent: "#004687", highlight: "#000000", bg: "#f8f9fa" },
-    "Houston Astros": { accent: "#002D62", highlight: "#000000", bg: "#f8f9fa" },
-    "Texas Rangers": { accent: "#003278", highlight: "#000000", bg: "#f8f9fa" },
-    "Seattle Mariners": { accent: "#0C2C56", highlight: "#000000", bg: "#f8f9fa" },
-    "Los Angeles Angels": { accent: "#BA0021", highlight: "#000000", bg: "#f8f9fa" },
-    "Oakland Athletics": { accent: "#003831", highlight: "#000000", bg: "#f8f9fa" },
+    "New York Yankees":      { accent: "#0C2340", highlight: "#0C2340", bg: "#ffffff" },
+    "Boston Red Sox":        { accent: "#BD3039", highlight: "#BD3039", bg: "#ffffff" },
+    "Tampa Bay Rays":        { accent: "#092C5C", highlight: "#092C5C", bg: "#ffffff" },
+    "Toronto Blue Jays":     { accent: "#134A8E", highlight: "#134A8E", bg: "#ffffff" },
+    "Baltimore Orioles":     { accent: "#DF4601", highlight: "#DF4601", bg: "#ffffff" },
 
-    "Atlanta Braves": { accent: "#0E2340", highlight: "#000000", bg: "#f8f9fa" },
-    "Philadelphia Phillies": { accent: "#E81828", highlight: "#000000", bg: "#f8f9fa" },
-    "New York Mets": { accent: "#002D72", highlight: "#000000", bg: "#f8f9fa" },
-    "Miami Marlins": { accent: "#00A3E0", highlight: "#000000", bg: "#f8f9fa" },
-    "Washington Nationals": { accent: "#AB0003", highlight: "#000000", bg: "#f8f9fa" },
+    "Minnesota Twins":       { accent: "#002B5C", highlight: "#002B5C", bg: "#ffffff" },
+    "Cleveland Guardians":   { accent: "#0C2340", highlight: "#E31937", bg: "#ffffff" },
+    "Chicago White Sox":     { accent: "#000000", highlight: "#000000", bg: "#ffffff" },
+    "Detroit Tigers":        { accent: "#0C2340", highlight: "#FA4616", bg: "#ffffff" },
+    "Kansas City Royals":    { accent: "#004687", highlight: "#C09A5B", bg: "#ffffff" },
 
-    "Chicago Cubs": { accent: "#0E3386", highlight: "#000000", bg: "#f8f9fa" },
-    "Milwaukee Brewers": { accent: "#12284B", highlight: "#000000", bg: "#f8f9fa" },
-    "St. Louis Cardinals": { accent: "#C41E3A", highlight: "#000000", bg: "#f8f9fa" },
-    "Pittsburgh Pirates": { accent: "#FFB81C", highlight: "#000000", bg: "#f8f9fa" },
-    "Cincinnati Reds": { accent: "#C6011F", highlight: "#000000", bg: "#f8f9fa" },
+    "Houston Astros":        { accent: "#002D62", highlight: "#EB6E1F", bg: "#ffffff" },
+    "Texas Rangers":         { accent: "#003278", highlight: "#C0111F", bg: "#ffffff" },
+    "Seattle Mariners":      { accent: "#003278", highlight: "#0C2C56", bg: "#ffffff" },
+    "Los Angeles Angels":    { accent: "#BA0021", highlight: "#003263", bg: "#ffffff" },
+    "Oakland Athletics":     { accent: "#003831", highlight: "#EFB21E", bg: "#ffffff" },
 
-    "Los Angeles Dodgers": { accent: "#005A9C", highlight: "#000000", bg: "#f8f9fa" },
-    "San Diego Padres": { accent: "#2F241D", highlight: "#000000", bg: "#f8f9fa" },
-    "San Francisco Giants": { accent: "#FD5A1E", highlight: "#000000", bg: "#f8f9fa" },
-    "Arizona Diamondbacks": { accent: "#A71930", highlight: "#000000", bg: "#f8f9fa" },
-    "Colorado Rockies": { accent: "#33006F", highlight: "#000000", bg: "#f8f9fa" }
+    "Atlanta Braves":        { accent: "#0E2340", highlight: "#CE1141", bg: "#ffffff" },
+    "Philadelphia Phillies": { accent: "#E81828", highlight: "#002D72", bg: "#ffffff" },
+    "New York Mets":         { accent: "#002D72", highlight: "#FF5910", bg: "#ffffff" },
+    "Miami Marlins":         { accent: "#00A3E0", highlight: "#EF3340", bg: "#ffffff" },
+    "Washington Nationals":  { accent: "#AB0003", highlight: "#14225A", bg: "#ffffff" },
+
+    "Chicago Cubs":          { accent: "#0E3386", highlight: "#CC3433", bg: "#ffffff" },
+    "Milwaukee Brewers":     { accent: "#12284B", highlight: "#FFC52F", bg: "#ffffff" },
+    "St. Louis Cardinals":   { accent: "#C41E3A", highlight: "#FEDB00", bg: "#ffffff" },
+    "Pittsburgh Pirates":    { accent: "#000000", highlight: "#FFB81C", bg: "#ffffff" },
+    "Cincinnati Reds":       { accent: "#C6011F", highlight: "#000000", bg: "#ffffff" },
+
+    "Los Angeles Dodgers":   { accent: "#005A9C", highlight: "#EF3E42", bg: "#ffffff" },
+    "San Diego Padres":      { accent: "#2F241D", highlight: "#FFC425", bg: "#ffffff" },
+    "San Francisco Giants":  { accent: "#FD5A1E", highlight: "#27251F", bg: "#ffffff" },
+    "Arizona Diamondbacks":  { accent: "#A71930", highlight: "#E3D4AD", bg: "#ffffff" },
+    "Colorado Rockies":      { accent: "#33006F", highlight: "#C4CED4", bg: "#ffffff" }
 };
+
 
 
 function applyUITheme(themeName) {
@@ -441,3 +444,15 @@ window.addEventListener("click", e => {
     if (e.target === document.getElementById("playerModal"))
         document.getElementById("playerModal").style.display = "none";
 });
+
+document.querySelectorAll("a, .menu-item").forEach(link => {
+    link.addEventListener("click", e => {
+        const href = link.getAttribute("href");
+        if (!href || href.startsWith("#")) return;
+
+        e.preventDefault();
+        document.body.classList.add("fade-out");
+        setTimeout(() => window.location.href = href, 300);
+    });
+});
+
