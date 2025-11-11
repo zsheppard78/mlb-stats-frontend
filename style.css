@@ -24,29 +24,29 @@ body {
 }
 
 /* Headings */
-h1, h2, h3 {
+h2, h3 {
     color: var(--accent);
+}
+h1 {
+    margin: 0;
+    color: var(--bg); /* readable on header */
+    font-size: 2.4em;
+    letter-spacing: 1px;
 }
 
 /* -----------------------------
    HEADER
 ------------------------------ */
 header {
-    background: #e9f2ff;
+    background: var(--accent);
+    color: var(--bg);
     padding: 50px 20px;
     text-align: center;
-    border-bottom: 3px solid var(--accent);
+    border-bottom: 3px solid var(--highlight);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
-}
-
-h1 {
-    margin: 0;
-    color: var(--accent);
-    font-size: 2.4em;
-    letter-spacing: 1px;
 }
 
 /* -----------------------------
@@ -58,11 +58,6 @@ main {
     display: flex;
     flex-direction: column;
     gap: 40px;
-}
-
-h2 {
-    color: var(--accent);
-    margin-bottom: 10px;
 }
 
 /* -----------------------------
@@ -161,7 +156,7 @@ summary {
     left: -260px;
     width: 240px;
     height: 100%;
-    background: #ffffff;
+    background: var(--bg);
     border-right: 2px solid var(--accent);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -198,7 +193,7 @@ summary {
     position: absolute;
     top: 35px;
     left: 40px;
-    color: var(--accent);
+    color: var(--bg); /* readable on themed header */
 }
 .menu-icon:hover { transform: rotate(10deg); }
 
@@ -310,14 +305,8 @@ body.menu-open::before {
     object-fit: cover;
     margin-bottom: 10px;
 }
-#playerModal h2 {
-    margin: 5px 0;
-    color: var(--accent);
-}
-#playerModal p {
-    margin: 5px 0;
-    color: var(--highlight);
-}
+#playerModal h2 { color: var(--accent); }
+#playerModal p { color: var(--highlight); }
 
 /* -----------------------------
    BUTTONS
@@ -333,9 +322,7 @@ body.menu-open::before {
     font-weight: 600;
     margin-top: 8px;
 }
-.reset-btn:hover {
-    background: #0056b3;
-}
+.reset-btn:hover { background: #0056b3; }
 
 /* -----------------------------
    STANDINGS TABLE
