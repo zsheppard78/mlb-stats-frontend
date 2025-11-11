@@ -112,6 +112,15 @@ document.addEventListener("DOMContentLoaded", () => {
     loadFavoriteTeamTheme();
     loadStandings();
 
+    const autoTeamTheme = document.getElementById("autoTeamTheme");
+
+    const savedAuto = localStorage.getItem("autoTeamTheme") || "on";
+    autoTeamTheme.value = savedAuto;
+
+    autoTeamTheme.addEventListener("change", () => {
+        localStorage.setItem("autoTeamTheme", autoTeamTheme.value);
+    });
+
     const menuBtn = document.getElementById("menuBtn");
     const sideMenu = document.getElementById("sideMenu");
     menuBtn.addEventListener("click", () => {
@@ -191,8 +200,12 @@ async function loadTeams() {
             teamCard.dataset.teamName = team.name.toLowerCase(); // 👈 for search filter
 
             teamCard.addEventListener("click", () => {
-                applyTeamTheme(team.name);
-                saveFavoriteTeamTheme(team.name);
+                const autoTheme = localStorage.getItem("autoTeamTheme");
+
+                if(autoTheme !== "off"){
+                    applyTeamTheme(team.name);
+                    saveFavoriteTeamTheme(team.name);
+                }
                 openRosterModal(team);
             });
 
