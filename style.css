@@ -423,3 +423,9 @@ details > div.standings {
     to   { opacity: 0; }
 }
 
+#autoTeamTheme{
+    padding: 6px;
+    width: 100%;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+}
