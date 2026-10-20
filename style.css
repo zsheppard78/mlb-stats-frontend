@@ -1714,3 +1714,208 @@ body > header:not(.site-header) p { margin: 6px 0 0; }
     .modal-head { flex-wrap: wrap; }
 }
 .game-status { white-space: nowrap; flex: none; }
+
+/* -----------------------------
+   UPCOMING GAMES (home page)
+------------------------------ */
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+.upcoming-section h2 { font-size: 1.35rem; margin-bottom: 10px; }
+
+.upcoming-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 270px);
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+}
+
+.up-card {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color .15s ease;
+}
+.up-card:hover, .up-card:focus-visible { border-color: var(--accent); }
+.up-card.is-fav { border-left: 3px solid #D4A017; }
+
+.up-when { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.up-when strong { color: var(--text); font-weight: 600; margin-right: 2px; }
+.up-star { color: #D4A017; margin-left: 6px; }
+.up-series { font-size: .8rem; font-weight: 600; color: var(--accent); }
+
+.up-team { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.up-team small { margin-left: auto; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.up-at { font-size: .75rem; color: var(--muted); margin: -3px 0 -3px 30px; }
+.up-pitchers {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: .8rem;
+    color: var(--muted);
+}
+.up-more {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .upcoming-strip { grid-auto-columns: 78%; }
+}
+
+/* -----------------------------
+   WORLD SERIES (home page)
+------------------------------ */
+.ws-section h2 { font-size: 1.35rem; margin-bottom: 10px; }
+
+.ws-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.ws-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    min-height: 120px;
+}
+
+/* The champion gets a gold edge, like a banner */
+.ws-card.is-champion {
+    border-top: 4px solid #D4A017;
+}
+
+.ws-logo { width: 76px; height: 76px; object-fit: contain; flex: none; }
+.ws-logo.small { width: 48px; height: 48px; }
+.ws-matchup { display: flex; align-items: center; gap: 6px; flex: none; }
+.ws-vs, .ws-and { color: var(--muted); font-size: .9rem; font-weight: 500; }
+
+.ws-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.ws-text p { margin: 0; }
+.ws-label { color: var(--muted); font-size: .9rem; font-weight: 500; }
+.ws-team {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1.1;
+}
+.ws-detail { color: var(--text); }
+.ws-detail .team-link { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.ws-text .ghost-btn { margin-top: 6px; }
+.ws-empty { color: var(--muted); margin: 4px 0 0; }
+
+.ws-history {
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+}
+.ws-history h3 {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.ws-history-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+}
+.ws-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font: inherit;
+    font-size: .9rem;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+.ws-chip:hover { border-color: var(--accent); }
+.ws-chip.active { border-color: #D4A017; background: color-mix(in srgb, #D4A017 12%, transparent); }
+.ws-chip-year { color: var(--muted); font-weight: 600; }
+.ws-chip-team { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 800px) {
+    .ws-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .ws-card { padding: 14px; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+    .ws-logo { width: 56px; height: 56px; }
+    .ws-team { font-size: 1.5rem; }
+    .ws-history-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* -----------------------------
+   TEAM POSTSEASON HISTORY
+------------------------------ */
+.ps-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px 28px;
+    margin: 6px 0 14px;
+}
+.ps-stat { display: flex; flex-direction: column; line-height: 1.1; }
+.ps-stat strong {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2rem;
+    font-variant-numeric: tabular-nums;
+}
+.ps-stat span { color: var(--muted); font-size: .875rem; }
+.ps-since { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .9rem; }
+
+.ps-table td { vertical-align: top; text-align: left; white-space: normal; }
+.ps-table .ps-year { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ps-result { font-weight: 600; white-space: nowrap; }
+.ps-result.champ { color: #9A7300; }
+:root[data-mode="dark"] .ps-result.champ { color: #E8C35A; }
+.ps-result.live { color: var(--accent); }
+.ps-detail { display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--muted); }
+.ps-series b { color: var(--text); font-weight: 600; margin-right: 2px; }
+.ps-empty { padding: 28px 0; text-align: center; }
+
+@media (max-width: 600px) {
+    .ps-stat strong { font-size: 1.6rem; }
+    .ps-table th:nth-child(3), .ps-table td:nth-child(3) { min-width: 210px; }
+}
+.ps-table th .th-text { text-align: left; }
+.ps-detail-inline { display: none; margin-top: 4px; }
+@media (max-width: 600px) {
+    .ps-table .ps-detail-col { display: none; }
+    .ps-detail-inline { display: flex; flex-direction: column; gap: 2px; font-size: .875rem; }
+    .ps-table td { white-space: normal; }
+}

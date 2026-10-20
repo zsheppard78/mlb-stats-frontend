@@ -91,8 +91,48 @@ const errors = [], results = {}, requests = [];
       if (u.hostname === 'app.test') return route.fulfill({ path: path.join(APP, u.pathname) });
       if (u.pathname.endsWith('/standings')) return json(route, standings);
       if (u.pathname.endsWith('/roster')) return json(route, roster);
+      if (u.pathname.endsWith('/schedule') && q.get('gameType') === 'W') {
+        const yr = Number(q.get('season'));
+        const CUR = new Date().getMonth() < 3 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+        if (yr === 1994) return json(route, { dates: [] });
+        if (yr === CUR) {
+          // Scheduled World Series: Rays at Brewers, Game 1 in three days
+          return json(route, { dates: [0, 1, 3].map((d, i) => ({ date: plus(3 + d), games: [game(500 + i, i === 2 ? 158 : 139, i === 2 ? 139 : 158, { date: plus(3 + d), gameDate: `${plus(3 + d)}T00:08:00Z`, gameType: 'W', gameNumber: i + 1 })] })) });
+        }
+        // Finished series: the winner takes games 1, 3, 5 and 7 (or a sweep in even years)
+        const [w, l] = yr === CUR - 1 ? [119, 141] : [[147, 158], [119, 139], [144, 147], [112, 114]][yr % 4];
+        const sweep = yr % 2 === 0 && yr !== CUR - 1;
+        const results = sweep ? [1, 1, 1, 1] : [1, 0, 1, 0, 1, 0, 1];
+        return json(route, { dates: results.map((won, i) => {
+          const g = game(600 + i, w, l, { date: `${yr}-10-${20 + i}`, gameType: 'W', status: { abstractGameState: 'Final', detailedState: 'Final' }, as: won ? 5 : 2, hs: won ? 2 : 5 });
+          if (i === results.length - 1) g.seriesStatus = { isOver: true, winningTeam: { id: w, name: T[w].name }, losingTeam: { id: l, name: T[l].name } };
+          return { date: `${yr}-10-${20 + i}`, games: [g] };
+        }) });
+      }
+      if (u.pathname.includes('/awards/WSMVP')) return json(route, { awards: [{ player: { id: 808967, nameFirstLast: 'Yoshinobu Yamamoto' } }] });
       if (u.pathname.endsWith('/schedule')) {
+        if (q.get('teamId') && q.get('gameType') === 'F,D,L,W') {
+          // Postseason history for the Brewers (158); everyone else stayed home
+          const yr = Number(q.get('season')), tid = Number(q.get('teamId'));
+          const CUR = new Date().getMonth() < 3 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+          const series = (type, desc, opp, results, pendingCount = 0) => results.map((won, i) => game(yr * 100 + i, tid, opp, {
+            date: `${yr}-10-${10 + i}`, gameType: type, seriesDescription: desc,
+            status: { abstractGameState: 'Final', detailedState: 'Final' }, as: won ? 4 : 1, hs: won ? 1 : 4 }))
+            .concat(Array.from({ length: pendingCount }, (_, i) => ({ ...game(yr * 100 + 50 + i, tid, opp, { gameType: type, seriesDescription: desc }), ifNecessary: i > 3 ? 'Y' : 'N' })));
+          let gs = [];
+          if (tid === 158 && yr === CUR) gs = [...series('L', 'NL Championship Series', 119, [1, 1, 0, 1, 1]), ...series('W', 'World Series', 139, [], 7)];
+          if (tid === 158 && yr === CUR - 1) gs = [...series('D', 'NL Division Series', 112, [1, 0, 1, 1]), ...series('L', 'NL Championship Series', 119, [0, 0, 0, 0])];
+          if (tid === 158 && yr === 2018) gs = [...series('D', 'NL Division Series', 137, [1, 1, 1]), ...series('L', 'NL Championship Series', 119, [1, 0, 0, 1, 0, 1, 0])];
+          if (tid === 158 && yr === 1982) gs = [...series('L', 'AL Championship Series', 108, [0, 0, 1, 1, 1]), ...series('W', 'World Series', 138, [1, 0, 0, 1, 1, 0, 0])];
+          if (tid === 158 && yr === 2020) gs = series('F', 'NL Wild Card Series', 119, [0, 0]);
+          if (tid === 119 && yr === 1988) gs = [...series('L', 'NL Championship Series', 121, [0, 1, 1, 0, 1, 0, 1]), ...series('W', 'World Series', 133, [1, 1, 0, 1, 1])];
+          return json(route, { dates: gs.length ? [{ date: `${yr}-10-10`, games: gs }] : [] });
+        }
         if (q.get('teamId')) return json(route, { dates: teamSchedule.map(g => ({ date: g.officialDate, games: [g] })) });
+        if (q.get('startDate') === TODAY) {
+          // Upcoming games section: today's games plus a game in 9 days
+          return json(route, { dates: [{ date: TODAY, games: todayGames }, { date: plus(9), games: [{ ...todayGames[2], gamePk: 9, gameDate: `${plus(9)}T23:05:00Z` }] }] });
+        }
         if (q.get('startDate')) {
           const forward = q.get('startDate') > TODAY;
           return json(route, { dates: forward ? [{ date: plus(9), games: [todayGames[2]] }] : [{ date: plus(-3), games: [todayGames[1]] }] });
@@ -146,6 +186,64 @@ const errors = [], results = {}, requests = [];
     await page.click('.game-card [data-open-team="147"]');
     await page.waitForSelector('#rosterModal:not([hidden]) .stats-table');
     results.teamOverGames = await page.evaluate(() => [getComputedStyle(document.getElementById('rosterModal')).zIndex, getComputedStyle(document.getElementById('gamesModal')).zIndex]);
+    await ctx.close();
+  }
+
+  // ---------- Upcoming games section ----------
+  {
+    const { ctx, page } = await newPage({ storage: { favorites: '[112]' } });
+    await page.waitForSelector('#upcoming-section:not([hidden]) .up-card');
+    results.upcoming = await page.$$eval('.up-card', cs => cs.map(c => c.textContent.replace(/\s+/g, ' ').trim()));
+    results.upcomingFav = await page.$$eval('.up-card.is-fav', c => c.length);
+    await page.screenshot({ path: `${OUT}/upcoming.png` });
+    await page.click('.up-card:nth-child(2)');
+    await page.waitForSelector('#gamesModal:not([hidden]) .game-card');
+    results.upcomingOpens = await page.$eval('#gamesDate', e => e.textContent);
+    await page.keyboard.press('Escape');
+    await page.selectOption('#seasonSelect', '1998');
+    await page.waitForFunction(() => document.getElementById('upcoming-section').hidden);
+    results.upcomingHiddenPast = true;
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.selectOption('#seasonSelect', String(new Date().getFullYear()));
+    await page.waitForSelector('#upcoming-section:not([hidden]) .up-card');
+    await page.evaluate(() => document.getElementById('upcoming-section').scrollIntoView());
+    results.upcomingMobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    await page.screenshot({ path: `${OUT}/m-upcoming.png` });
+    await ctx.close();
+  }
+
+  // ---------- World Series section ----------
+  {
+    const { ctx, page } = await newPage();
+    await page.waitForSelector('#wsCard .ws-matchup');
+    results.wsCurrent = await page.$eval('#wsCard', e => e.textContent.replace(/\s+/g, ' ').trim());
+    await page.waitForSelector('#wsHistory .ws-chip');
+    results.wsHistory = await page.$$eval('#wsHistory .ws-chip', c => c.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
+    await page.evaluate(() => document.getElementById('ws-section').scrollIntoView());
+    await page.screenshot({ path: `${OUT}/world-series-current.png` });
+    // click last season's champion chip -> switches the whole page to that season
+    await page.click('#wsHistory .ws-chip:first-child');
+    await page.waitForSelector('#wsCard.is-champion');
+    results.wsLastYear = await page.$eval('#wsCard', e => e.textContent.replace(/\s+/g, ' ').trim());
+    results.wsSeasonSwitched = await page.$eval('#seasonSelect', s => s.value);
+    results.wsCached = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('wsCache') || '{}')).length);
+    await page.waitForTimeout(400);
+    await page.evaluate(() => document.getElementById('ws-section').scrollIntoView());
+    await page.screenshot({ path: `${OUT}/world-series-champion.png` });
+    await page.click('#wsCard [data-player-id]');
+    await page.waitForSelector('#playerModal:not([hidden])');
+    results.wsMvpOpens = await page.$eval('#playerViewTabs .tab-btn', b => b.textContent);
+    await page.keyboard.press('Escape');
+    await page.selectOption('#seasonSelect', '1994');
+    await page.waitForFunction(() => /1994/.test(document.getElementById('wsCard').textContent) && !document.querySelector('#wsCard .spinner'));
+    results.ws1994 = await page.$eval('#wsCard', e => e.textContent.replace(/\s+/g, ' ').trim());
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.selectOption('#seasonSelect', String(new Date().getFullYear() - 1));
+    await page.waitForSelector('#wsCard.is-champion');
+    await page.waitForTimeout(400);
+    await page.evaluate(() => document.getElementById('ws-section').scrollIntoView());
+    results.wsMobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    await page.screenshot({ path: `${OUT}/m-world-series.png` });
     await ctx.close();
   }
 
@@ -243,6 +341,47 @@ const errors = [], results = {}, requests = [];
     await ctx.close();
   }
 
+  // ---------- Team postseason history ----------
+  {
+    const { ctx, page } = await newPage();
+    await page.click('.standings-row[data-team-id="158"]');
+    await page.waitForSelector('.stats-table');
+    await page.click('[data-team-view="postseason"]');
+    await page.waitForSelector('.ps-table');
+    results.psSummary = await page.$eval('.ps-summary', e => e.textContent.replace(/\s+/g, ' ').trim());
+    results.psRows = await page.$$eval('.ps-table tbody tr', r => r.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
+    results.psRosterTabsHidden = await page.$eval('#rosterTabs', e => e.hidden);
+    results.psRequests = requests.filter(u => u.includes('gameType=F%2CD%2CL%2CW') || u.includes('gameType=F,D,L,W')).length;
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: `${OUT}/team-postseason.png` });
+    // Second time: everything finished is cached, so only the current season is re-checked
+    await page.click('[data-team-view="roster"]');
+    const before = requests.length;
+    await page.click('[data-team-view="postseason"]');
+    await page.waitForSelector('.ps-table');
+    results.psSecondLoadRequests = requests.slice(before).filter(u => /gameType=F(%2C|,)D/.test(u)).length;
+    // Click a year -> whole site switches to that season with the team reopened
+    await page.click('[data-ps-year="2018"]');
+    await page.waitForFunction(() => document.getElementById('seasonSelect').value === '2018' && !document.getElementById('rosterModal').hidden && document.querySelector('#rosterBody .stats-table'));
+    results.psYearJump = [await page.$eval('#seasonLabel', e => e.textContent), await page.$eval('#teamNameModal', e => e.textContent), await page.$eval('[data-team-view="roster"]', b => b.classList.contains('active'))];
+    // A team with no playoff trips
+    await page.keyboard.press('Escape');
+    await page.click('.standings-row[data-team-id="115"]');
+    await page.waitForSelector('.stats-table');
+    await page.click('[data-team-view="postseason"]');
+    await page.waitForSelector('.ps-empty');
+    results.psNone = await page.$eval('.ps-empty', e => e.textContent);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.keyboard.press('Escape');
+    await page.click('.standings-row[data-team-id="158"]');
+    await page.waitForSelector('.stats-table');
+    await page.click('[data-team-view="postseason"]');
+    await page.waitForSelector('.ps-table');
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${OUT}/m-team-postseason.png` });
+    await ctx.close();
+  }
+
   // ---------- Deep links ----------
   {
     const { ctx, page } = await newPage({ url: 'index.html?player=592450&season=2024' });
@@ -317,6 +456,32 @@ const errors = [], results = {}, requests = [];
   assert.deepEqual(results.deepCompare, [2, 2, 2, true], '?compare= deep link opens chart');
   assert.equal(results.colorStable, true, 'chart colors stay with each player');
   assert.equal(results.mobileOverflow, 0);
+  assert.equal(results.upcoming.length, 2, 'only games that have not started are upcoming');
+  assert.match(results.upcoming[0], /^Today 6:05 PM/, 'soonest game first');
+  assert.match(results.upcoming[0], /Shota Imanaga vs Sonny Gray/, 'probable pitchers shown');
+  assert.equal(results.upcomingFav, 2, 'games with a starred team are marked');
+  assert.doesNotMatch(results.upcomingOpens, /Today/, 'clicking a game opens that day');
+  assert.equal(results.upcomingHiddenPast, true, 'hidden when viewing a past season');
+  assert.equal(results.upcomingMobileOverflow, 0, 'scrolls inside its row, not the page');
+  assert.match(results.wsCurrent, /World Series Tampa Bay Rays vs Milwaukee Brewers Game 1 is/, 'scheduled World Series shows the matchup');
+  assert.equal(results.wsHistory.length, 10, 'ten recent champions');
+  assert.match(results.wsHistory[0], /^\d{4} LAD$/, 'newest champion first');
+  assert.match(results.wsLastYear, /World Series champions Los Angeles Dodgers Beat the Toronto Blue Jays 4–3 in 7 games/);
+  assert.match(results.wsLastYear, /Series MVP: Yoshinobu Yamamoto/);
+  assert.equal(Number(results.wsSeasonSwitched), new Date().getFullYear() - 1, 'clicking a champion switches the season');
+  assert.ok(results.wsCached >= 10, 'finished World Series are cached');
+  assert.match(results.ws1994, /No World Series was played in 1994\. The season ended early because of the players' strike\./);
+  assert.equal(results.wsMobileOverflow, 0);
+  assert.match(results.psSummary, /^5\s*playoff trips 2\s*pennants 0\s*World Series titles Since 1969/);
+  assert.match(results.psRows[0], /In progress: World Series.*NLCS beat LAD 4–1.*World Series vs TB 0–0/, 'current run shows as in progress');
+  assert.match(results.psRows[1], /Lost NLCS.*NLDS beat CHC 3–1.*NLCS lost to LAD 0–4/);
+  assert.match(results.psRows.find(r => r.startsWith('2020')), /Lost Wild Card Series/);
+  assert.match(results.psRows.find(r => r.startsWith('1982')), /Lost World Series.*ALCS beat LAA 3–2.*World Series lost to STL 3–4/);
+  assert.equal(results.psRosterTabsHidden, true);
+  assert.ok(results.psRequests >= 58, 'every season since 1969 checked the first time');
+  assert.equal(results.psSecondLoadRequests, 1, 'finished seasons come from the cache');
+  assert.deepEqual(results.psYearJump, ['2018', 'Milwaukee Brewers', true], 'clicking a year opens that season');
+  assert.match(results.psNone, /haven't reached the postseason since 1969/);
   await browser.close();
   console.log(JSON.stringify(results, null, 1));
   const unexpected = errors.filter(e => !/status of 404/.test(e));

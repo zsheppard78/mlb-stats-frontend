@@ -922,7 +922,7 @@ async function openRosterModal(team, opener) {
         }
     }
     // The user may have clicked a different team while this one was loading
-    if (state.currentTeam === team && state.teamView !== "games") renderRoster();
+    if (state.currentTeam === team && (state.teamView || "roster") === "roster") renderRoster();
 }
 
 function renderRoster() {

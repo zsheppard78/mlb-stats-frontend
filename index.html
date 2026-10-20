@@ -20,7 +20,7 @@
     <link rel="manifest" href="manifest.webmanifest">
 
     <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
-    <link rel="stylesheet" href="style.css?v=9" />
+    <link rel="stylesheet" href="style.css?v=12" />
 </head>
 
 <body>
@@ -101,6 +101,27 @@
         <h2>My teams</h2>
         <div id="favoritesGrid" class="favorites-row"></div>
         <p id="favoritesEmpty" class="empty-hint">Tap the ☆ next to any team to pin it here.</p>
+    </section>
+
+    <!-- UPCOMING GAMES -->
+    <section id="upcoming-section" class="upcoming-section" aria-labelledby="upcomingTitle" hidden>
+        <div class="section-head">
+            <h2 id="upcomingTitle">Upcoming games</h2>
+            <button class="link-btn" id="upcomingAll">Full schedule</button>
+        </div>
+        <div id="upcomingList" class="upcoming-strip"></div>
+    </section>
+
+    <!-- WORLD SERIES -->
+    <section id="ws-section" class="ws-section" aria-labelledby="wsTitle" hidden>
+        <h2 id="wsTitle">World Series</h2>
+        <div class="ws-layout">
+            <div id="wsCard" class="ws-card" aria-live="polite"></div>
+            <div class="ws-history">
+                <h3>Recent champions</h3>
+                <div id="wsHistory" class="ws-history-list"></div>
+            </div>
+        </div>
     </section>
 
     <p id="noResults" class="empty-hint no-results" hidden>No teams match your search.</p>
@@ -232,6 +253,7 @@
             <div class="roster-tabs" id="teamViewTabs" role="group" aria-label="Team view">
                 <button class="tab-btn active" data-team-view="roster" aria-pressed="true">Roster</button>
                 <button class="tab-btn" data-team-view="games" aria-pressed="false">Games</button>
+                <button class="tab-btn" data-team-view="postseason" aria-pressed="false">Postseason</button>
             </div>
             <div class="roster-tabs" id="rosterTabs" role="tablist"></div>
         </div>
@@ -313,7 +335,7 @@
         </div>
         <ul class="help-list">
             <li><strong>Find a team:</strong> type in the search box, or scroll through the divisions.</li>
-            <li><strong>See a team:</strong> click any team in the standings for its roster, or switch to Games for recent results and what's coming up.</li>
+            <li><strong>See a team:</strong> click any team in the standings for its roster, Games for recent results and what's coming up, or Postseason for its playoff history since 1969.</li>
             <li><strong>Other seasons:</strong> use the Season menu next to search to see standings and rosters from any year back to 1969.</li>
             <li><strong>Players:</strong> click a player for their bio, season, career, year-by-year chart, game log and splits.</li>
             <li><strong>From the ☰ menu:</strong> Today's games, League leaders, Find a player and Compare players.</li>
@@ -334,7 +356,7 @@
 </footer>
 
 <!-- Updated script version for cache busting -->
-<script src="script.js?v=11"></script>
-<script src="extras.js?v=1"></script>
+<script src="script.js?v=12"></script>
+<script src="extras.js?v=4"></script>
 </body>
 </html>

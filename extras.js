@@ -65,6 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupShareButtons();
     setupRefresh();
     setupInstall();
+    setupUpcoming();
+    setupWorldSeries();
     applyCompareParams();
 });
 
@@ -726,7 +728,7 @@ function updateTeamViewTabs() {
         b.classList.toggle("active", b.dataset.teamView === state.teamView);
         b.setAttribute("aria-pressed", b.dataset.teamView === state.teamView);
     });
-    document.getElementById("rosterTabs").hidden = state.teamView === "games";
+    document.getElementById("rosterTabs").hidden = state.teamView !== "roster";
 }
 
 function setupTeamView() {
@@ -736,10 +738,13 @@ function setupTeamView() {
         state.teamView = btn.dataset.teamView;
         updateTeamViewTabs();
         if (state.teamView === "games") renderTeamGames(state.currentTeam);
+        else if (state.teamView === "postseason") renderTeamPostseason(state.currentTeam);
         else if (state.rosterCache[rosterKey(state.currentTeam.id)]) renderRoster();
         else openRosterModal(state.currentTeam);
     });
     document.getElementById("rosterBody").addEventListener("click", e => {
+        const yearBtn = e.target.closest("[data-ps-year]");
+        if (yearBtn) { viewTeamInSeason(state.currentTeam, Number(yearBtn.dataset.psYear)); return; }
         const t = e.target.closest("[data-open-team]");
         if (t && teamById(t.dataset.openTeam)) {
             openRosterModal(teamById(t.dataset.openTeam), t);
@@ -869,6 +874,8 @@ function afterDataLoaded(ok) {
         state.lastUpdated = new Date();
         updateUpdatedLine();
     }
+    loadUpcoming();
+    renderWorldSeries();
     if (!playerParamHandled) {
         playerParamHandled = true;
         const pid = Number(new URLSearchParams(location.search).get("player"));
@@ -924,4 +931,436 @@ function setupInstall() {
         btn.hidden = true;
     });
     window.addEventListener("appinstalled", () => { btn.hidden = true; showToast("Installed. Look for MLB Stats on your home screen."); });
+}
+
+
+// =========================
+// UPCOMING GAMES (home page section)
+// =========================
+const UPCOMING_MAX = 8;
+let upcomingSeq = 0;
+
+function setupUpcoming() {
+    document.getElementById("upcomingAll").addEventListener("click", e => {
+        games.date = isoDate(new Date());
+        openModal("gamesModal", e.currentTarget);
+        loadGames();
+    });
+    document.getElementById("upcomingList").addEventListener("click", e => {
+        const card = e.target.closest("[data-game-date]");
+        if (!card) return;
+        games.date = card.dataset.gameDate;
+        openModal("gamesModal", card);
+        loadGames();
+    });
+}
+
+async function loadUpcoming() {
+    const section = document.getElementById("upcomingSection") || document.getElementById("upcoming-section");
+    const list = document.getElementById("upcomingList");
+    const seq = ++upcomingSeq;
+
+    // Only the current season has upcoming games
+    if (state.season !== SEASON && state.season !== new Date().getFullYear()) {
+        section.hidden = true;
+        return;
+    }
+
+    const today = isoDate(new Date());
+    const fetchRange = days => fetchJSON(`${MLB_API}/schedule?sportId=1&startDate=${today}&endDate=${addDays(today, days)}` +
+        `&hydrate=team,probablePitcher,seriesStatus`);
+    const pickUpcoming = data => (data.dates || [])
+        .flatMap(d => (d.games || []).map(g => ({ ...g, day: d.date })))
+        .filter(g => g.status?.abstractGameState === "Preview" && !/Postponed|Cancelled/.test(g.status?.detailedState || ""))
+        .filter(g => new Date(g.gameDate) > new Date(Date.now() - 15 * 60000) || g.status?.startTimeTBD);
+
+    let upcoming = [];
+    try {
+        upcoming = pickUpcoming(await fetchRange(14));
+        // Offseason: look further ahead for the next scheduled games (e.g. Opening Day)
+        if (!upcoming.length) upcoming = pickUpcoming(await fetchRange(180));
+    } catch (err) {
+        console.warn("Upcoming games unavailable:", err);
+        if (seq === upcomingSeq) section.hidden = true;
+        return;
+    }
+    if (seq !== upcomingSeq) return;
+
+    if (!upcoming.length) {
+        section.hidden = false;
+        list.innerHTML = `<p class="empty-hint">No games on the schedule yet. Check back closer to spring training.</p>`;
+        return;
+    }
+
+    const favs = new Set(state.favorites);
+    const shown = upcoming.slice(0, UPCOMING_MAX);
+    list.innerHTML = shown.map(g => {
+        const away = g.teams.away, home = g.teams.home;
+        const isFav = favs.has(away.team.id) || favs.has(home.team.id);
+        const when = g.status?.startTimeTBD ? "Time TBD" : gameTime(g.gameDate);
+        const series = g.gameType !== "R" && g.seriesStatus
+            ? (g.seriesStatus.shortDescription || g.description || "") : "";
+        const pp = side => side.probablePitcher?.fullName;
+        const pitchers = pp(away) || pp(home)
+            ? `${esc(pp(away) || "TBD")} vs ${esc(pp(home) || "TBD")}` : "";
+        const row = side => `<span class="up-team">
+                <img src="${logoUrl(side.team.id)}" alt="" class="mini-logo" loading="lazy">
+                <span>${esc(abbrFor(side.team))}</span>
+                ${side.leagueRecord && g.gameType === "R" ? `<small>${side.leagueRecord.wins}-${side.leagueRecord.losses}</small>` : ""}
+            </span>`;
+        return `<button class="up-card ${isFav ? "is-fav" : ""}" data-game-date="${g.day}"
+                aria-label="${esc(away.team.name)} at ${esc(home.team.name)}, ${esc(dayLabel(g.day))} ${esc(when)}${isFav ? ", one of your teams" : ""}">
+            <span class="up-when"><strong>${esc(shortDayLabel(g.day))}</strong> ${esc(when)}${isFav ? '<span class="up-star" aria-hidden="true">★</span>' : ""}</span>
+            ${series ? `<span class="up-series">${esc(series)}</span>` : ""}
+            ${row(away)}
+            <span class="up-at" aria-hidden="true">@</span>
+            ${row(home)}
+            ${pitchers ? `<span class="up-pitchers">${pitchers}</span>` : ""}
+        </button>`;
+    }).join("") + (upcoming.length > UPCOMING_MAX
+        ? `<button class="up-card up-more" data-game-date="${shown[shown.length - 1].day}">See ${upcoming.length - UPCOMING_MAX} more in the full schedule</button>`
+        : "");
+    section.hidden = false;
+}
+
+function shortDayLabel(iso) {
+    const today = isoDate(new Date());
+    if (iso === today) return "Today";
+    if (iso === addDays(today, 1)) return "Tomorrow";
+    return parseISODate(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+
+// =========================
+// WORLD SERIES (home page section)
+// =========================
+const WS_HISTORY = 10;
+let wsSeq = 0;
+
+// One season's World Series: not played / scheduled / in progress / over
+async function getWorldSeries(year) {
+    const cache = readJSON("wsCache", {});
+    if (cache[year]) return cache[year];
+
+    const data = await fetchJSON(`${MLB_API}/schedule?sportId=1&season=${year}&gameType=W&hydrate=team,seriesStatus`);
+    const list = (data.dates || []).flatMap(d => d.games || [])
+        .filter(g => !/Postponed|Cancelled/.test(g.status?.detailedState || ""));
+    if (!list.length) return { year, status: "none" };
+
+    const first = list[0];
+    const teams = [first.teams.away.team, first.teams.home.team].map(t => ({ id: t.id, name: t.name, abbr: abbrFor(t) }));
+    const finals = list.filter(g => g.status?.abstractGameState === "Final");
+    const winsFor = id => finals.filter(g => (g.teams.away.team.id === id ? g.teams.away : g.teams.home).isWinner).length;
+    const last = finals[finals.length - 1];
+    const over = last?.seriesStatus?.isOver || Math.max(winsFor(teams[0].id), winsFor(teams[1].id)) >= 4;
+
+    if (over) {
+        const winnerId = last.seriesStatus?.winningTeam?.id || (winsFor(teams[0].id) > winsFor(teams[1].id) ? teams[0].id : teams[1].id);
+        const winner = teams.find(t => t.id === winnerId) || teams[0];
+        const loser = teams.find(t => t.id !== winner.id);
+        const result = { year, status: "over", winner, loser,
+            wins: winsFor(winner.id), losses: winsFor(loser.id), clinched: last.officialDate || last.gameDate.slice(0, 10) };
+        try {
+            const aw = await fetchJSON(`${MLB_API}/awards/WSMVP/recipients?season=${year}`);
+            const mvp = aw.awards?.[0]?.player;
+            if (mvp) result.mvp = { id: mvp.id, name: mvp.nameFirstLast || mvp.fullName };
+        } catch { /* MVP is a bonus */ }
+        // A finished World Series never changes. Re-read before saving because
+        // several seasons load at the same time and each adds its own entry.
+        const latest = readJSON("wsCache", {});
+        latest[year] = result;
+        writeJSON("wsCache", latest);
+        return result;
+    }
+
+    const live = list.find(g => g.status?.abstractGameState === "Live");
+    const next = list.find(g => g.status?.abstractGameState === "Preview");
+    return {
+        year, status: finals.length || live ? "live" : "scheduled", teams,
+        score: teams.map(t => winsFor(t.id)),
+        gameNumber: (live || next)?.seriesGameNumber || (live || next)?.seriesStatus?.gameNumber,
+        nextDate: (live || next)?.officialDate, nextTime: (live || next)?.gameDate, isLive: !!live
+    };
+}
+
+function setupWorldSeries() {
+    document.getElementById("wsHistory").addEventListener("click", e => {
+        const btn = e.target.closest("[data-ws-year]");
+        if (!btn) return;
+        const select = document.getElementById("seasonSelect");
+        select.value = btn.dataset.wsYear;
+        select.dispatchEvent(new Event("change"));
+        document.getElementById("ws-section").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    document.getElementById("wsCard").addEventListener("click", e => {
+        const mvp = e.target.closest("[data-player-id]");
+        if (mvp) { openPlayerById(Number(mvp.dataset.playerId), mvp, Number(mvp.dataset.season)); return; }
+        const team = e.target.closest("[data-open-team]");
+        if (team && teamById(team.dataset.openTeam)) { openRosterModal(teamById(team.dataset.openTeam), team); return; }
+        const gamesBtn = e.target.closest("[data-games-date]");
+        if (gamesBtn) {
+            games.date = gamesBtn.dataset.gamesDate;
+            openModal("gamesModal", gamesBtn);
+            loadGames();
+        }
+    });
+}
+
+function teamNameHTML(t) {
+    return teamById(t.id)
+        ? `<button class="team-link" data-open-team="${t.id}">${esc(t.name)}</button>`
+        : esc(t.name);
+}
+
+function wsCardHTML(ws, label) {
+    if (ws.status === "none") {
+        const why = ws.year === 1994 ? " The season ended early because of the players' strike." : "";
+        return `<p class="ws-label">${ws.year}</p><p class="ws-empty">No World Series was played in ${ws.year}.${why}</p>`;
+    }
+    if (ws.status === "over") {
+        const len = ws.wins + ws.losses;
+        return `<img src="${logoUrl(ws.winner.id)}" alt="" class="ws-logo">
+            <div class="ws-text">
+                <p class="ws-label">${label || `${ws.year} World Series champions`}</p>
+                <p class="ws-team">${teamNameHTML(ws.winner)}</p>
+                <p class="ws-detail">Beat the ${esc(ws.loser.name)} ${ws.wins}–${ws.losses}${len === 4 ? " (a sweep)" : ` in ${len} games`}${ws.clinched ? ` · won ${esc(parseISODate(ws.clinched).toLocaleDateString(undefined, { month: "long", day: "numeric" }))}` : ""}</p>
+                ${ws.mvp ? `<p class="ws-detail">Series MVP: <button class="team-link" data-player-id="${ws.mvp.id}" data-season="${ws.year}">${esc(ws.mvp.name)}</button></p>` : ""}
+            </div>`;
+    }
+    // scheduled or in progress
+    const [a, b] = ws.teams;
+    const [sa, sb] = ws.score;
+    const status = ws.status === "scheduled"
+        ? `Game 1 is ${esc(shortDayLabel(ws.nextDate).replace(/^Today$/, "today").replace(/^Tomorrow$/, "tomorrow"))}${ws.nextTime ? ` at ${esc(gameTime(ws.nextTime))}` : ""}`
+        : sa === sb ? `Series tied ${sa}–${sb}` : `${esc((sa > sb ? a : b).abbr)} leads ${Math.max(sa, sb)}–${Math.min(sa, sb)}`;
+    const next = ws.nextDate
+        ? `<button class="ghost-btn small" data-games-date="${ws.nextDate}">${ws.isLive ? "Watch the score" : `Game ${ws.gameNumber || ""} · ${esc(shortDayLabel(ws.nextDate))}`}</button>`
+        : "";
+    return `<div class="ws-matchup">
+            <img src="${logoUrl(a.id)}" alt="" class="ws-logo small">
+            <span class="ws-vs">vs</span>
+            <img src="${logoUrl(b.id)}" alt="" class="ws-logo small">
+        </div>
+        <div class="ws-text">
+            <p class="ws-label">${ws.year} World Series${ws.isLive ? ' · <span class="live-dot" aria-hidden="true"></span>live now' : ""}</p>
+            <p class="ws-team">${teamNameHTML(a)} <span class="ws-and">vs</span> ${teamNameHTML(b)}</p>
+            <p class="ws-detail">${status}</p>
+            ${next}
+        </div>`;
+}
+
+async function renderWorldSeries() {
+    const section = document.getElementById("ws-section");
+    const card = document.getElementById("wsCard");
+    const history = document.getElementById("wsHistory");
+    const seq = ++wsSeq;
+    const year = state.season;
+    section.hidden = false;
+    card.innerHTML = `<div class="loading-block"><span class="spinner" aria-hidden="true"></span> Loading the World Series…</div>`;
+
+    try {
+        let ws = await getWorldSeries(year);
+        let label = "";
+        // Season still going and no World Series scheduled yet: show the defending champions
+        if (ws.status === "none" && year === SEASON && year !== 1994) {
+            const prev = await getWorldSeries(year - 1);
+            if (prev.status === "over") { ws = prev; label = `Defending champions (${prev.year})`; }
+            else ws = { year, status: "none" };
+            if (!label) ws = { year, status: "none" };
+        }
+        if (seq !== wsSeq) return;
+        card.innerHTML = ws.status === "none" && year === SEASON
+            ? `<p class="ws-label">${year} World Series</p><p class="ws-empty">The ${year} World Series hasn't been scheduled yet.</p>`
+            : wsCardHTML(ws, label);
+        card.classList.toggle("is-champion", ws.status === "over");
+    } catch (err) {
+        console.warn("World Series unavailable:", err);
+        if (seq === wsSeq) card.innerHTML = `<p class="ws-empty">World Series results couldn't be loaded right now.</p>`;
+    }
+
+    // Recent champions: the last 10 finished World Series, newest first
+    try {
+        const years = [];
+        for (let y = SEASON; y >= Math.max(1903, SEASON - WS_HISTORY - 2); y--) years.push(y);
+        const all = await Promise.all(years.map(y => getWorldSeries(y).catch(() => null)));
+        if (seq !== wsSeq) return;
+        const champs = all.filter(w => w && w.status === "over").slice(0, WS_HISTORY);
+        history.innerHTML = champs.map(w => `
+            <button class="ws-chip ${w.year === year ? "active" : ""}" data-ws-year="${w.year}"
+                    aria-pressed="${w.year === year}" title="${esc(w.winner.name)} beat the ${esc(w.loser.name)} ${w.wins}–${w.losses}">
+                <span class="ws-chip-year">${w.year}</span>
+                <img src="${logoUrl(w.winner.id)}" alt="" class="mini-logo" loading="lazy">
+                <span class="ws-chip-team">${esc(w.winner.abbr || w.winner.name)}</span>
+            </button>`).join("");
+    } catch (err) {
+        console.warn("Champion history unavailable:", err);
+    }
+}
+
+
+// =========================
+// TEAM WINDOW: POSTSEASON HISTORY
+// =========================
+const PS_FIRST_SEASON = 1969;
+const ROUND_ORDER = { F: 1, D: 2, L: 3, W: 4 };
+
+function roundName(type, desc = "") {
+    const lg = /^AL|American/.test(desc) ? "AL" : /^NL|National/.test(desc) ? "NL" : "";
+    return { F: "Wild Card", D: `${lg}DS`.replace(/^DS$/, "Division Series"), L: `${lg}CS`.replace(/^CS$/, "LCS"), W: "World Series" }[type] || desc;
+}
+
+// One season of a team's playoff games -> list of series with results
+function summarizePostseason(games, teamId) {
+    const byRound = {};
+    games.filter(g => !/Postponed|Cancelled/.test(g.status?.detailedState || "")).forEach(g => {
+        (byRound[g.gameType] = byRound[g.gameType] || []).push(g);
+    });
+    return Object.entries(byRound)
+        .sort(([a], [b]) => (ROUND_ORDER[a] || 0) - (ROUND_ORDER[b] || 0))
+        .map(([type, list]) => {
+            const side = g => (g.teams.home.team.id === teamId ? g.teams.home : g.teams.away);
+            const other = g => (g.teams.home.team.id === teamId ? g.teams.away : g.teams.home);
+            const finals = list.filter(g => g.status?.abstractGameState === "Final");
+            const wins = finals.filter(g => side(g).isWinner).length;
+            const losses = finals.filter(g => other(g).isWinner).length;
+            // Done when no un-played game is still required (the API marks "if necessary" games)
+            const pending = list.some(g => g.status?.abstractGameState !== "Final" && g.ifNecessary !== "Y");
+            const finished = !pending && finals.length > 0;
+            const opp = other(list[0]).team;
+            return {
+                type, round: roundName(type, list[0].seriesDescription),
+                opp: { id: opp.id, name: opp.name, abbr: abbrFor(opp) },
+                wins, losses, won: finished ? wins > losses : null
+            };
+        });
+}
+
+async function loadTeamPostseason(team, onProgress) {
+    const cacheKey = `ps-${team.id}`;
+    const cache = readJSON("postseasonCache", {});
+    const teamCache = cache[cacheKey] || {};
+    const first = Math.max(PS_FIRST_SEASON, Number(team.firstYearOfPlay) || PS_FIRST_SEASON);
+    const years = [];
+    for (let y = SEASON; y >= first; y--) years.push(y);
+
+    const results = {};
+    let done = 0;
+    const todo = years.filter(y => {
+        if (y in teamCache) { results[y] = teamCache[y]; return false; }
+        return true;
+    });
+    done = years.length - todo.length;
+    onProgress?.(done, years.length);
+
+    // Fetch a few seasons at a time so we don't flood the API
+    const queue = [...todo];
+    const worker = async () => {
+        while (queue.length) {
+            const y = queue.shift();
+            try {
+                const data = await fetchJSON(`${MLB_API}/schedule?sportId=1&teamId=${team.id}&season=${y}&gameType=F,D,L,W`);
+                const games = (data.dates || []).flatMap(d => d.games || []);
+                results[y] = games.length ? summarizePostseason(games, team.id) : null;
+            } catch {
+                results[y] = undefined; // couldn't load; try again next time
+            }
+            onProgress?.(++done, years.length);
+        }
+    };
+    await Promise.all(Array.from({ length: 8 }, worker));
+
+    // Cache finished seasons (a playoff run in progress can still change)
+    const latest = readJSON("postseasonCache", {});
+    latest[cacheKey] = latest[cacheKey] || {};
+    years.forEach(y => {
+        const r = results[y];
+        if (r === undefined) return;
+        if (y === SEASON && (r || []).some(s => s.won === null)) return;
+        if (y === SEASON && r === null) return; // this year's playoffs may not have started
+        latest[cacheKey][y] = r;
+    });
+    writeJSON("postseasonCache", latest);
+    return years.map(y => ({ year: y, series: results[y] })).filter(r => r.series !== undefined);
+}
+
+async function renderTeamPostseason(team) {
+    const body = document.getElementById("rosterBody");
+    body.innerHTML = `<div class="loading-block"><span class="spinner" aria-hidden="true"></span> <span id="psProgress">Loading postseason history…</span></div>`;
+    let seasons;
+    try {
+        seasons = await loadTeamPostseason(team, (done, total) => {
+            const el = document.getElementById("psProgress");
+            if (el && total > done) el.textContent = `Loading postseason history… ${done} of ${total} seasons`;
+        });
+    } catch (err) {
+        console.error("Postseason history error:", err);
+        if (state.currentTeam === team && state.teamView === "postseason") {
+            body.innerHTML = `<p class="empty-hint">Postseason history couldn't be loaded. Try again in a moment.</p>`;
+        }
+        return;
+    }
+    if (state.currentTeam !== team || state.teamView !== "postseason") return;
+
+    const first = Math.max(PS_FIRST_SEASON, Number(team.firstYearOfPlay) || PS_FIRST_SEASON);
+    const trips = seasons.filter(s => s.series && s.series.length);
+    const titles = trips.filter(s => s.series.some(x => x.type === "W" && x.won));
+    const pennants = trips.filter(s => s.series.some(x => x.type === "W"));
+
+    if (!trips.length) {
+        body.innerHTML = `<p class="empty-hint ps-empty">The ${esc(team.name)} haven't reached the postseason since ${first}.</p>`;
+        return;
+    }
+
+    const stat = (n, label) => `<div class="ps-stat"><strong>${n}</strong><span>${label}</span></div>`;
+    const summary = `<div class="ps-summary">
+        ${stat(trips.length, trips.length === 1 ? "playoff trip" : "playoff trips")}
+        ${stat(pennants.length, pennants.length === 1 ? "pennant" : "pennants")}
+        ${stat(titles.length, titles.length === 1 ? "World Series title" : "World Series titles")}
+        <p class="ps-since">Since ${first}${titles.length ? ` · Champions in ${titles.map(t => t.year).join(", ")}` : ""}${trips[0] ? ` · Last trip: ${trips[0].year}` : ""}</p>
+    </div>`;
+
+    const outcome = list => {
+        const last = list[list.length - 1];
+        if (last.won === null) return { text: `In progress: ${last.round}`, cls: "live" };
+        if (last.type === "W" && last.won) return { text: "Won World Series", cls: "champ" };
+        return { text: `Lost ${last.round === "Wild Card" ? "Wild Card Series" : last.round}`, cls: "" };
+    };
+
+    const rows = trips.map(s => {
+        const o = outcome(s.series);
+        const detail = s.series.map(x => {
+            const verb = x.won === null ? "vs" : x.won ? "beat" : "lost to";
+            return `<span class="ps-series"><b>${esc(x.round)}</b> ${verb} ${esc(x.opp.abbr || x.opp.name)} ${x.wins}–${x.losses}</span>`;
+        }).join("");
+        return `<tr>
+            <td class="name-col"><button class="team-link ps-year" data-ps-year="${s.year}" title="See the ${s.year} season">${s.year}</button></td>
+            <td><span class="ps-result ${o.cls}">${o.cls === "champ" ? "🏆 " : ""}${esc(o.text)}</span>
+                <div class="ps-detail ps-detail-inline">${detail}</div></td>
+            <td class="ps-detail-col"><div class="ps-detail">${detail}</div></td>
+        </tr>`;
+    }).join("");
+
+    body.innerHTML = `${summary}
+        <div class="table-scroll"><table class="stats-table ps-table">
+            <thead><tr><th class="name-col"><span class="th-text">Year</span></th><th><span class="th-text">Finish</span></th><th class="ps-detail-col"><span class="th-text">Series</span></th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table></div>
+        <p class="table-hint">Click a year to see that season's standings and roster. History starts in ${first}, the first season of division play${Number(team.firstYearOfPlay) > PS_FIRST_SEASON ? " for this franchise" : ""}.</p>`;
+}
+
+// Jump the whole site to a season and reopen this team there
+async function viewTeamInSeason(team, year) {
+    const select = document.getElementById("seasonSelect");
+    select.value = String(year);
+    state.season = year;
+    document.getElementById("seasonLabel").textContent = year;
+    await loadData();
+    const again = teamById(team.id);
+    if (again) {
+        state.teamView = "roster";
+        openRosterModal(again);
+    } else {
+        closeModal("rosterModal");
+        showToast(`The ${team.name} didn't play in ${year}.`);
+    }
 }

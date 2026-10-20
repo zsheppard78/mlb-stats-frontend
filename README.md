@@ -9,7 +9,9 @@ A fast, mobile-friendly web app for following Major League Baseball: standings, 
 ## Features
 
 - **Standings for any season:** American and National League side by side, with W-L, PCT, games back, last 10 and streak. Pick any year from 1969 to today. Older seasons show the divisions that existed then.
-- **Team pages:** the full roster with sortable hitting and pitching stats, plus a Games tab with recent results and upcoming games, including the postseason.
+- **Team pages:** the full roster with sortable hitting and pitching stats, a Games tab with recent results and upcoming games, and a Postseason tab with every playoff run since 1969 (each series, who they beat, and titles and pennants).
+- **Upcoming games:** the next games on the home page, with times and probable pitchers, and your favorite teams marked.
+- **World Series:** this year's matchup and series score, or the champion and series MVP for any past season, plus the last 10 champions. Click a year to jump to that season.
 - **Player pages:** bio, season stats, career totals, a year-by-year table with an interactive chart, the last 15 games and splits (home/away, day/night, vs. lefties/righties).
 - **Today's games:** live scores that refresh themselves, final scores with winning and losing pitchers, and probable pitchers for upcoming games. On days with no games it jumps you to the nearest game day.
 - **League leaders:** the top 10 in HR, AVG, RBI, OPS, ERA, strikeouts, WHIP and more, for MLB, the AL or the NL, in any season.
