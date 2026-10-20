@@ -11,13 +11,13 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="https://www.mlbstatic.com/team-logos/158.svg">
 
     <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
-    <link rel="stylesheet" href="style.css?v=6" />
+    <link rel="stylesheet" href="style.css?v=7" />
 </head>
 
 <body>
@@ -25,8 +25,8 @@
 <header class="site-header">
     <button class="menu-icon" id="menuBtn" aria-label="Open settings" aria-expanded="false" aria-controls="sideMenu">☰</button>
     <div class="title-wrap">
-        <h1>⚾ MLB Stats Explorer</h1>
-        <p class="subtitle" id="seasonLabel">MLB standings, rosters &amp; player stats</p>
+        <h1>MLB Stats Explorer</h1>
+        <p class="season-tile" aria-label="Season"><span id="seasonLabel"></span></p>
     </div>
     <button class="icon-btn help-btn-header" id="helpBtnHeader" aria-label="Help">?</button>
 </header>
@@ -43,10 +43,10 @@
         <div class="menu-item">
             <label for="theme">Color theme</label>
             <select id="theme">
-                <option value="classic">Classic (Blue on White)</option>
+                <option value="classic">Ballpark (default)</option>
                 <option value="cleanblue">Clean Blue</option>
                 <option value="graysoft">Soft Gray</option>
-                <option value="night">Night Mode</option>
+                <option value="night">Night Game (dark)</option>
                 <option value="team">My favorite team's colors</option>
             </select>
             <p class="menu-hint" id="themeHint"></p>
@@ -80,70 +80,55 @@
 
     <!-- FAVORITES -->
     <section id="favorites-section" class="favorites-section">
-        <h2>⭐ My Teams</h2>
-        <div id="favoritesGrid" class="teams-grid"></div>
-        <p id="favoritesEmpty" class="empty-hint">Tap the ☆ on any team to pin it here for quick access.</p>
+        <h2>My teams</h2>
+        <div id="favoritesGrid" class="favorites-row"></div>
+        <p id="favoritesEmpty" class="empty-hint">Tap the ☆ next to any team to pin it here.</p>
     </section>
 
     <p id="noResults" class="empty-hint no-results" hidden>No teams match your search.</p>
 
-    <!-- AMERICAN LEAGUE -->
-    <section id="american-league" class="league">
-        <h2>American League</h2>
+    <div class="leagues">
+        <!-- AMERICAN LEAGUE -->
+        <section id="american-league" class="league">
+            <h2>American League</h2>
 
-        <details open data-division="AL-East">
-            <summary>East Division</summary>
-            <div class="division-body">
+            <details open data-division="AL-East">
+                <summary>East</summary>
                 <div id="AL-East-standings" class="standings"></div>
-                <div id="AL-East" class="teams-grid"></div>
-            </div>
-        </details>
+            </details>
 
-        <details open data-division="AL-Central">
-            <summary>Central Division</summary>
-            <div class="division-body">
+            <details open data-division="AL-Central">
+                <summary>Central</summary>
                 <div id="AL-Central-standings" class="standings"></div>
-                <div id="AL-Central" class="teams-grid"></div>
-            </div>
-        </details>
+            </details>
 
-        <details open data-division="AL-West">
-            <summary>West Division</summary>
-            <div class="division-body">
+            <details open data-division="AL-West">
+                <summary>West</summary>
                 <div id="AL-West-standings" class="standings"></div>
-                <div id="AL-West" class="teams-grid"></div>
-            </div>
-        </details>
-    </section>
+            </details>
+        </section>
 
-    <!-- NATIONAL LEAGUE -->
-    <section id="national-league" class="league">
-        <h2>National League</h2>
+        <!-- NATIONAL LEAGUE -->
+        <section id="national-league" class="league">
+            <h2>National League</h2>
 
-        <details open data-division="NL-East">
-            <summary>East Division</summary>
-            <div class="division-body">
+            <details open data-division="NL-East">
+                <summary>East</summary>
                 <div id="NL-East-standings" class="standings"></div>
-                <div id="NL-East" class="teams-grid"></div>
-            </div>
-        </details>
+            </details>
 
-        <details open data-division="NL-Central">
-            <summary>Central Division</summary>
-            <div class="division-body">
+            <details open data-division="NL-Central">
+                <summary>Central</summary>
                 <div id="NL-Central-standings" class="standings"></div>
-                <div id="NL-Central" class="teams-grid"></div>
-            </div>
-        </details>
+            </details>
 
-        <details open data-division="NL-West">
-            <summary>West Division</summary>
-            <div class="division-body">
+            <details open data-division="NL-West">
+                <summary>West</summary>
                 <div id="NL-West-standings" class="standings"></div>
-                <div id="NL-West" class="teams-grid"></div>
-            </div>
-        </details>
-    </section>
+            </details>
+        </section>
+    </div>
+    <p id="clinchLegend" class="clinch-legend" hidden></p>
 
 </main>
 
@@ -188,10 +173,10 @@
         </div>
         <ul class="help-list">
             <li><strong>Find a team:</strong> type in the search box, or scroll through the divisions.</li>
-            <li><strong>See a roster:</strong> click any team card or standings row. Stats are for the current season.</li>
+            <li><strong>See a roster:</strong> click any team in the standings. Stats are for the current season.</li>
             <li><strong>Sort stats:</strong> click a column header in the roster (e.g. HR or ERA).</li>
             <li><strong>Player details:</strong> click a player for their bio and season line.</li>
-            <li><strong>Favorites:</strong> tap ☆ to pin a team to "My Teams" at the top.</li>
+            <li><strong>Favorites:</strong> tap ☆ next to a team to pin it to "My teams" at the top.</li>
             <li><strong>Colors:</strong> open ☰ Settings to pick a theme, including your favorite team's colors.</li>
             <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search and <kbd>Esc</kbd> to close a window.</li>
         </ul>
@@ -206,6 +191,6 @@
 </footer>
 
 <!-- Updated script version for cache busting -->
-<script src="script.js?v=8"></script>
+<script src="script.js?v=9"></script>
 </body>
 </html>

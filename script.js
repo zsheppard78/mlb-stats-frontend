@@ -135,10 +135,10 @@ teamThemes["Athletics"] = teamThemes["Oakland Athletics"];
 
 // Site-wide themes (picked in the ☰ Settings menu)
 const presetThemes = {
-    classic:   { accent: "#007BFF", highlight: "#0056b3", bg: "#ffffff" },
-    cleanblue: { accent: "#0051A8", highlight: "#1A1A1A", bg: "#F9FBFF" },
-    graysoft:  { accent: "#444444", highlight: "#222222", bg: "#FAFAFA" },
-    night:     { accent: "#58a6ff", highlight: "#C9D1D9", bg: "#0D1117" }
+    classic:   { accent: "#1F6B45", highlight: "#2C4A3A", bg: "#F5F7F4" },  // ballpark grass
+    cleanblue: { accent: "#0051A8", highlight: "#1A1A1A", bg: "#F7F9FC" },
+    graysoft:  { accent: "#444444", highlight: "#222222", bg: "#F7F7F6" },
+    night:     { accent: "#4FBF85", highlight: "#C9D6CF", bg: "#0F1714" }   // night game
 };
 
 // --- color contrast helpers: some team colors (yellow on white, navy on black)
@@ -249,7 +249,7 @@ const teamById = id => state.teams.find(t => t.id === Number(id));
 // INIT PAGE
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("seasonLabel").textContent = `${SEASON} season · standings, rosters & player stats`;
+    document.getElementById("seasonLabel").textContent = SEASON;
     applyThemeChoice(getThemeChoice());
     restoreDivisionState();
     setupMenu();
@@ -372,17 +372,23 @@ function recordText(teamId) {
     return r ? `${r.wins}–${r.losses}` : "";
 }
 
-function teamCardHTML(team) {
+function starHTML(team) {
     const isFav = state.favorites.includes(team.id);
+    return `<button class="favorite-star ${isFav ? "active" : ""}" data-team-id="${team.id}"
+                aria-pressed="${isFav}" title="${isFav ? "Remove from" : "Add to"} My Teams"
+                aria-label="${isFav ? "Remove" : "Add"} ${esc(team.name)} ${isFav ? "from" : "to"} My Teams">${isFav ? "★" : "☆"}</button>`;
+}
+
+function teamCardHTML(team) {
     return `
         <div class="team-card" role="button" tabindex="0" data-team-id="${team.id}"
              aria-label="${esc(team.name)}: view roster">
-            <button class="favorite-star ${isFav ? "active" : ""}" data-team-id="${team.id}"
-                    aria-pressed="${isFav}" title="${isFav ? "Remove from" : "Add to"} My Teams"
-                    aria-label="${isFav ? "Remove" : "Add"} ${esc(team.name)} ${isFav ? "from" : "to"} My Teams">${isFav ? "★" : "☆"}</button>
             <img src="${logoUrl(team.id)}" data-fallback="${logoFallbackUrl(team.id)}" class="team-logo" alt="" loading="lazy">
-            <p class="team-name">${esc(team.name)}</p>
-            <p class="team-record">${recordText(team.id)}</p>
+            <span class="team-text">
+                <span class="team-name">${esc(team.name)}</span>
+                <span class="team-record">${recordText(team.id)}</span>
+            </span>
+            ${starHTML(team)}
         </div>`;
 }
 
@@ -402,14 +408,15 @@ function renderDivisions(records) {
             .sort((a, b) =>
                 (Number(state.standings[a.id]?.divisionRank) || 99) - (Number(state.standings[b.id]?.divisionRank) || 99)
                 || a.name.localeCompare(b.name));
-        document.getElementById(key).innerHTML = teams.map(teamCardHTML).join("");
+        const grid = document.getElementById(key); // optional card grid per division
+        if (grid) grid.innerHTML = teams.map(teamCardHTML).join("");
     });
 
     // Standings tables
+    const usedClinch = new Set();
     records.forEach(div => {
         const key = divisionKey(div.division);
         if (!key) return;
-        const usedClinch = new Set();
 
         const rows = div.teamRecords.map(tr => {
             const t = tr.team;
@@ -432,10 +439,9 @@ function renderDivisions(records) {
                     <td>${esc(tr.gamesBack)}</td>
                     <td class="hide-sm">${lastTen ? `${lastTen.wins}-${lastTen.losses}` : "—"}</td>
                     <td class="hide-sm">${esc(tr.streak?.streakCode || "—")}</td>
+                    <td class="star-cell">${starHTML(teamById(t.id) || t)}</td>
                 </tr>`;
         }).join("");
-
-        const legend = [...usedClinch].map(c => `<span><b>${c}</b> ${CLINCH[c]}</span>`).join("");
 
         document.getElementById(`${key}-standings`).innerHTML = `
             <table>
@@ -448,12 +454,18 @@ function renderDivisions(records) {
                         <th title="Games back">GB</th>
                         <th class="hide-sm" title="Last 10 games">L10</th>
                         <th class="hide-sm" title="Current streak">STRK</th>
+                        <th class="star-cell"><span class="visually-hidden">Favorite</span></th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
-            </table>
-            ${legend ? `<p class="clinch-legend">${legend}</p>` : ""}`;
+            </table>`;
     });
+
+    // One key for the playoff letters, shown under the standings
+    const legendEl = document.getElementById("clinchLegend");
+    const order = Object.keys(CLINCH).filter(k => usedClinch.has(k));
+    legendEl.innerHTML = order.map(k => `<span><b>${k}</b> ${CLINCH[k]}</span>`).join("");
+    legendEl.hidden = order.length === 0;
 
     applySearch(document.getElementById("teamSearch").value);
 }
@@ -570,7 +582,7 @@ function applySearch(raw) {
             const team = teamById(el.dataset.teamId);
             const show = !q || (team && teamMatches(team, q));
             el.hidden = !show;
-            if (show && el.classList.contains("team-card")) matches++;
+            if (show && el.classList.contains("standings-row")) matches++;
         });
         totalMatches += matches;
         details.hidden = q && matches === 0;
@@ -674,7 +686,7 @@ function setupMenu() {
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
         setThemeChoice("classic");
-        showToast("Theme reset to Classic (Blue on White)");
+        showToast("Theme reset to Ballpark");
     });
 
     // Help
