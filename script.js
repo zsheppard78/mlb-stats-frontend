@@ -254,6 +254,8 @@ const teamById = id => state.teams.find(t => t.id === Number(id));
 // INIT PAGE
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
+    const seasonParam = Number(new URLSearchParams(location.search).get("season"));
+    if (seasonParam >= 1969 && seasonParam <= SEASON) state.season = seasonParam;
     document.getElementById("seasonLabel").textContent = state.season;
     setupSeasonPicker();
     setupPlayerWindow();
@@ -356,6 +358,7 @@ async function loadData() {
     if (teamParam && teamById(teamParam) && !anyModalOpen()) {
         openRosterModal(teamById(teamParam));
     }
+    if (typeof afterDataLoaded === "function") afterDataLoaded(standingsResult.status === "fulfilled");
 }
 
 function showStatus(type, message, withRetry = false) {
@@ -676,7 +679,7 @@ function setupMenu() {
         sideMenu.setAttribute("aria-hidden", "false");
         menuBtn.setAttribute("aria-expanded", "true");
         backdrop.hidden = false;
-        document.getElementById("theme").focus();
+        setTimeout(() => document.getElementById("gamesBtn").focus(), 60);
     };
     const closeMenu = (returnFocus = true) => {
         if (!sideMenu.classList.contains("active")) return;
@@ -884,6 +887,7 @@ const rosterKey = teamId => `${state.season}-${teamId}`;
 async function openRosterModal(team, opener) {
     state.currentTeam = team;
     state.currentTab = "hitters";
+    if (typeof resetTeamView === "function") resetTeamView();
 
     document.getElementById("teamNameModal").textContent = team.name;
     const logo = document.getElementById("teamLogoModal");
@@ -918,7 +922,7 @@ async function openRosterModal(team, opener) {
         }
     }
     // The user may have clicked a different team while this one was loading
-    if (state.currentTeam === team) renderRoster();
+    if (state.currentTeam === team && state.teamView !== "games") renderRoster();
 }
 
 function renderRoster() {
@@ -1182,20 +1186,28 @@ function yearTable(group, data) {
         </table></div>`;
 }
 
-let currentPlayer = null; // roster entry shown in the player window
+let currentPlayer = null; // player shown in the player window
 
 function openPlayerModal(id, opener) {
-    const p = (state.rosterCache[rosterKey(state.currentTeam?.id)] || []).find(x => x.id === id);
-    if (!p) return;
+    const entry = (state.rosterCache[rosterKey(state.currentTeam?.id)] || []).find(x => x.id === id);
+    if (!entry) return;
+    showPlayer({ ...entry, teamName: state.currentTeam.name, fromRoster: true }, opener);
+}
+
+// p: { id, name, number, posName, person, teamName, hitting, pitching, inHitters, inPitchers, fromRoster }
+function showPlayer(p, opener) {
     currentPlayer = p;
+    const id = p.id;
     const person = p.person;
+    document.getElementById("backToRoster").hidden = !p.fromRoster || document.getElementById("rosterModal").hidden;
+    if (typeof rememberPlayer === "function") rememberPlayer(p);
 
     const img = document.getElementById("playerHeadshot");
     img.src = headshotUrl(id, 300);
     img.alt = `${p.name} headshot`;
     document.getElementById("playerName").textContent = p.name;
     document.getElementById("playerTeam").textContent =
-        [p.number ? `#${p.number}` : "", p.posName, state.currentTeam.name].filter(Boolean).join(" · ");
+        [p.number ? `#${p.number}` : "", p.posName, p.teamName].filter(Boolean).join(" · ");
 
     const born = [person.birthCity, person.birthStateProvince || person.birthCountry].filter(Boolean).join(", ");
     const bio = [
@@ -1224,22 +1236,30 @@ async function renderPlayerView() {
     const p = currentPlayer;
     if (!p) return;
     const view = state.playerView;
+    const yr = p.season || state.season; // season this window was opened for
 
     document.getElementById("playerViewTabs").innerHTML = [
-        { key: "season", label: `${state.season} season` },
+        { key: "season", label: `${yr}` },
         { key: "career", label: "Career" },
-        { key: "years", label: "By year" }
+        { key: "years", label: "By year" },
+        { key: "games", label: "Game log" },
+        { key: "splits", label: "Splits" }
     ].map(t => `<button class="tab-btn ${t.key === view ? "active" : ""}" data-view="${t.key}"
         aria-pressed="${t.key === view}">${t.label}</button>`).join("");
 
     const box = document.getElementById("playerStats");
     const groups = [p.inHitters && "hitting", p.inPitchers && "pitching"].filter(Boolean);
 
+    if (view === "games" || view === "splits") {
+        (view === "games" ? renderGameLog : renderSplits)(p, box, groups);
+        return;
+    }
+
     if (view === "season") {
         let html = "";
-        if (p.inHitters && p.hitting) html += hittingTiles(`${state.season} hitting`, p.hitting);
-        if (p.inPitchers && p.pitching) html += pitchingTiles(`${state.season} pitching`, p.pitching);
-        box.innerHTML = html || `<p class="empty-hint">No ${state.season} stats for this player.</p>`;
+        if (p.inHitters && p.hitting) html += hittingTiles(`${yr} hitting`, p.hitting);
+        if (p.inPitchers && p.pitching) html += pitchingTiles(`${yr} pitching`, p.pitching);
+        box.innerHTML = html || `<p class="empty-hint">No ${yr} stats for this player.</p>`;
         return;
     }
 
@@ -1266,9 +1286,12 @@ async function renderPlayerView() {
                 `${label}${span ? ` <small>${span} · ${data.years.length} season${data.years.length === 1 ? "" : "s"}</small>` : ""}`,
                 data.career);
         }
-        if (view === "years" && data.years.length) html += yearTable(group, data);
+        if (view === "years" && data.years.length) html += `<div class="chart-slot" data-group="${group}"></div>` + yearTable(group, data);
     });
     box.innerHTML = html || `<p class="empty-hint">No MLB career stats for this player yet.</p>`;
+    if (view === "years") {
+        box.querySelectorAll(".chart-slot").forEach(slot => renderCareerChart(slot, career, slot.dataset.group));
+    }
 }
 
 function setupPlayerWindow() {
@@ -1397,7 +1420,9 @@ function setupCompare() {
         const g = e.target.closest("[data-cmp-group]");
         if (g) { compare.group = g.dataset.cmpGroup; compare.season = null; renderCompare(); return; }
         const m = e.target.closest("[data-cmp-mode]");
-        if (m) { compare.mode = m.dataset.cmpMode; renderCompare(); }
+        if (m) { compare.mode = m.dataset.cmpMode; renderCompare(); return; }
+        const v = e.target.closest("[data-cmp-view]");
+        if (v) { compare.view = v.dataset.cmpView; renderCompare(); }
     });
     document.getElementById("compareSeason").addEventListener("change", e => {
         compare.season = Number(e.target.value);
@@ -1468,6 +1493,7 @@ async function renderCompare() {
             const c = state.careerCache[id];
             const span = c ? (seasonSpan(c, "hitting") || seasonSpan(c, "pitching")) : "";
             return `<span class="compare-chip">
+                <span class="series-dot" style="background:var(--series-${compareSlot(id)})" aria-hidden="true"></span>
                 <img src="${headshotUrl(id, 60)}" alt="" loading="lazy">
                 <span><strong>${esc(nameOf(id))}</strong>${span ? `<small>${span}</small>` : ""}</span>
                 <button type="button" data-remove="${id}" aria-label="Remove ${esc(nameOf(id))}">&times;</button>
@@ -1510,8 +1536,18 @@ async function renderCompare() {
         b.classList.toggle("active", b.dataset.cmpMode === compare.mode);
         b.setAttribute("aria-pressed", b.dataset.cmpMode === compare.mode);
     });
+    controls.querySelectorAll("[data-cmp-view]").forEach(b => {
+        b.classList.toggle("active", b.dataset.cmpView === (compare.view || "table"));
+        b.setAttribute("aria-pressed", b.dataset.cmpView === (compare.view || "table"));
+    });
+    const chartView = compare.view === "chart";
+    document.getElementById("cmpModeTabs").hidden = chartView;
     const seasonSelect = document.getElementById("compareSeason");
-    seasonSelect.hidden = compare.mode !== "season";
+    seasonSelect.hidden = chartView || compare.mode !== "season";
+    if (chartView) {
+        renderCompareChart(body, careers, group);
+        return;
+    }
     seasonSelect.innerHTML = allSeasons.map(y =>
         `<option value="${y}">${y}${seasonSets.length > 1 && shared.includes(y) ? "" : seasonSets.length > 1 ? " (not all played)" : ""}</option>`).join("");
     if (compare.season) seasonSelect.value = String(compare.season);

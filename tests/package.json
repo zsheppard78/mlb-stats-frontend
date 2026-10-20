@@ -1,0 +1,11 @@
+{
+  "name": "mlb-stats-frontend-tests",
+  "private": true,
+  "description": "Browser tests for MLB Stats Explorer. All MLB API calls are mocked, so the tests are fast and never flaky.",
+  "scripts": {
+    "test": "node run-all.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

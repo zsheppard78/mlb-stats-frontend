@@ -7,23 +7,26 @@
 
     <!-- Meta for SEO & sharing -->
     <meta name="description" content="Explore MLB team stats, rosters, and standings with a sleek, dynamic interface. Built by Zachary Sheppard." />
+    <meta name="theme-color" content="#1F6B45" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="https://www.mlbstatic.com/team-logos/158.svg">
+    <!-- Icons + install as an app -->
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
-    <link rel="stylesheet" href="style.css?v=8" />
+    <link rel="stylesheet" href="style.css?v=9" />
 </head>
 
 <body>
 
 <header class="site-header">
-    <button class="menu-icon" id="menuBtn" aria-label="Open settings" aria-expanded="false" aria-controls="sideMenu">☰</button>
+    <button class="menu-icon" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenu">☰</button>
     <div class="title-wrap">
         <h1>MLB Stats Explorer</h1>
         <p class="season-tile" aria-label="Season"><span id="seasonLabel"></span></p>
@@ -31,15 +34,23 @@
     <button class="icon-btn help-btn-header" id="helpBtnHeader" aria-label="Help">?</button>
 </header>
 
-<!-- SETTINGS SIDE MENU -->
-<nav id="sideMenu" class="side-menu" aria-label="Settings" aria-hidden="true">
+<!-- SIDE MENU -->
+<nav id="sideMenu" class="side-menu" aria-label="Menu" aria-hidden="true">
     <div class="menu-top">
         <div class="menu-head">
-            <h3>⚙️ Settings</h3>
-            <button class="icon-btn" id="closeMenuBtn" aria-label="Close settings">&times;</button>
+            <h3>Menu</h3>
+            <button class="icon-btn" id="closeMenuBtn" aria-label="Close menu">&times;</button>
         </div>
-        <hr>
 
+        <div class="menu-links menu-explore">
+            <button class="menu-item help-link" id="gamesBtn"><span aria-hidden="true">🏟️</span> Today's games</button>
+            <button class="menu-item help-link" id="leadersBtn"><span aria-hidden="true">🏆</span> League leaders</button>
+            <button class="menu-item help-link" id="findPlayerBtn"><span aria-hidden="true">🔎</span> Find a player</button>
+            <button class="menu-item help-link" id="compareBtn"><span aria-hidden="true">⚖️</span> Compare players</button>
+            <a class="menu-item help-link" href="favorites.html"><span aria-hidden="true">⭐</span> Favorite teams</a>
+        </div>
+
+        <h4 class="menu-section">Settings</h4>
         <div class="menu-item">
             <label for="theme">Color theme</label>
             <select id="theme">
@@ -58,9 +69,7 @@
     </div>
 
     <div class="menu-links">
-        <button class="menu-item help-link" id="compareBtn">⚖️ Compare players</button>
-        <a class="menu-item help-link" href="favorites.html">⭐ Favorite Teams</a>
-        <button class="menu-item help-link" id="helpBtn">❓ Help &amp; Info</button>
+        <button class="menu-item help-link" id="helpBtn"><span aria-hidden="true">❓</span> Help &amp; info</button>
     </div>
 </nav>
 <div class="menu-backdrop" id="menuBackdrop" hidden></div>
@@ -79,6 +88,10 @@
         </label>
         <button class="ghost-btn" id="toggleAllBtn">Collapse all</button>
     </div>
+    <p class="updated-line" id="updatedLine" hidden>
+        <span id="updatedText"></span>
+        <button class="link-btn" id="refreshBtn">Refresh</button>
+    </p>
 
     <!-- LOADING / ERROR STATUS -->
     <div id="statusBanner" class="status-banner" role="status" aria-live="polite" hidden></div>
@@ -137,6 +150,71 @@
 
 </main>
 
+<!-- TODAY'S GAMES -->
+<div id="gamesModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gamesTitle" hidden>
+    <div class="modal-content games-modal">
+        <div class="modal-head">
+            <div>
+                <h2 id="gamesTitle">Games</h2>
+                <p class="modal-sub" id="gamesDate" aria-live="polite"></p>
+            </div>
+            <button class="close-btn" id="closeGames" aria-label="Close games">&times;</button>
+        </div>
+        <div class="date-nav">
+            <button class="ghost-btn" id="gamesPrev" aria-label="Previous day">‹ Previous day</button>
+            <button class="ghost-btn" id="gamesToday">Today</button>
+            <button class="ghost-btn" id="gamesNext" aria-label="Next day">Next day ›</button>
+        </div>
+        <div id="gamesBody"></div>
+    </div>
+</div>
+
+<!-- LEAGUE LEADERS -->
+<div id="leadersModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="leadersTitle" hidden>
+    <div class="modal-content leaders-modal">
+        <div class="modal-head">
+            <div>
+                <h2 id="leadersTitle">League leaders</h2>
+                <p class="modal-sub">Top 10 in each category. Rate stats like AVG and ERA only count qualified players.</p>
+            </div>
+            <button class="close-btn" id="closeLeaders" aria-label="Close leaders">&times;</button>
+        </div>
+        <div class="leaders-controls" id="leadersControls">
+            <div class="roster-tabs" role="group" aria-label="Stat type">
+                <button class="tab-btn" data-lead-group="hitting">Hitting</button>
+                <button class="tab-btn" data-lead-group="pitching">Pitching</button>
+            </div>
+            <select id="leadersLeague" aria-label="League">
+                <option value="">All MLB</option>
+                <option value="103">American League</option>
+                <option value="104">National League</option>
+            </select>
+            <select id="leadersSeason" aria-label="Season"></select>
+            <div class="chip-row" id="leaderCats" role="group" aria-label="Category"></div>
+        </div>
+        <div id="leadersBody"></div>
+    </div>
+</div>
+
+<!-- FIND A PLAYER -->
+<div id="findModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="findTitle" hidden>
+    <div class="modal-content find-modal">
+        <div class="modal-head">
+            <div>
+                <h2 id="findTitle">Find a player</h2>
+                <p class="modal-sub">Any MLB player, past or present.</p>
+            </div>
+            <button class="close-btn" id="closeFind" aria-label="Close find a player">&times;</button>
+        </div>
+        <div class="compare-search">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="findSearch" placeholder="Player name (e.g. Ohtani, Ken Griffey, Ruth)…"
+                   autocomplete="off" aria-label="Player name" aria-controls="findResults">
+        </div>
+        <ul id="findResults" class="find-results"></ul>
+    </div>
+</div>
+
 <!-- TEAM ROSTER MODAL -->
 <div id="rosterModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="teamNameModal" hidden>
     <div class="modal-content">
@@ -146,10 +224,17 @@
                 <h2 id="teamNameModal"></h2>
                 <p class="modal-sub" id="rosterSub"></p>
             </div>
+            <button class="ghost-btn small share-btn" id="copyTeamLink">Copy link</button>
             <button class="close-btn" id="closeModal" aria-label="Close roster">&times;</button>
         </div>
 
-        <div class="roster-tabs" id="rosterTabs" role="tablist"></div>
+        <div class="team-view-row">
+            <div class="roster-tabs" id="teamViewTabs" role="group" aria-label="Team view">
+                <button class="tab-btn active" data-team-view="roster" aria-pressed="true">Roster</button>
+                <button class="tab-btn" data-team-view="games" aria-pressed="false">Games</button>
+            </div>
+            <div class="roster-tabs" id="rosterTabs" role="tablist"></div>
+        </div>
         <div id="rosterBody"></div>
     </div>
 </div>
@@ -159,6 +244,8 @@
     <div class="modal-content player-modal">
         <div class="player-modal-top">
             <button class="ghost-btn" id="backToRoster">← Back to roster</button>
+            <span class="spacer"></span>
+            <button class="ghost-btn small share-btn" id="copyPlayerLink">Copy link</button>
             <button class="close-btn" id="closePlayerModal" aria-label="Close player">&times;</button>
         </div>
         <img id="playerHeadshot" class="player-modal-img" alt="" src="">
@@ -181,6 +268,7 @@
                 <h2 id="compareTitle">Compare players</h2>
                 <p class="modal-sub">Line up to four players, by career or by a single season.</p>
             </div>
+            <button class="ghost-btn small share-btn" id="copyCompareLink">Copy link</button>
             <button class="close-btn" id="closeCompare" aria-label="Close compare">&times;</button>
         </div>
 
@@ -201,7 +289,11 @@
                 <button class="tab-btn" data-cmp-group="hitting">Hitting</button>
                 <button class="tab-btn" data-cmp-group="pitching">Pitching</button>
             </div>
-            <div class="roster-tabs" role="group" aria-label="Time span">
+            <div class="roster-tabs" role="group" aria-label="Show as">
+                <button class="tab-btn" data-cmp-view="table">Table</button>
+                <button class="tab-btn" data-cmp-view="chart">Chart</button>
+            </div>
+            <div class="roster-tabs" id="cmpModeTabs" role="group" aria-label="Time span">
                 <button class="tab-btn" data-cmp-mode="career">Career</button>
                 <button class="tab-btn" data-cmp-mode="season">Single season</button>
             </div>
@@ -216,19 +308,19 @@
 <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
     <div class="modal-content help-modal">
         <div class="modal-head">
-            <h2 id="helpTitle">How to use Baseball Teams Explorer</h2>
+            <h2 id="helpTitle">How to use MLB Stats Explorer</h2>
             <button class="close-btn" id="closeHelp" aria-label="Close help">&times;</button>
         </div>
         <ul class="help-list">
             <li><strong>Find a team:</strong> type in the search box, or scroll through the divisions.</li>
-            <li><strong>See a roster:</strong> click any team in the standings. Stats are for the current season.</li>
-            <li><strong>Sort stats:</strong> click a column header in the roster (e.g. HR or ERA).</li>
+            <li><strong>See a team:</strong> click any team in the standings for its roster, or switch to Games for recent results and what's coming up.</li>
             <li><strong>Other seasons:</strong> use the Season menu next to search to see standings and rosters from any year back to 1969.</li>
-            <li><strong>Player details:</strong> click a player for their bio, season line, career totals and year-by-year stats.</li>
-            <li><strong>Compare players:</strong> open ☰ and choose Compare players, or press Compare in a player's window. Compare careers or a single season.</li>
+            <li><strong>Players:</strong> click a player for their bio, season, career, year-by-year chart, game log and splits.</li>
+            <li><strong>From the ☰ menu:</strong> Today's games, League leaders, Find a player and Compare players.</li>
+            <li><strong>Share:</strong> use Copy link in a team, player or comparison window to send exactly what you're looking at.</li>
             <li><strong>Favorites:</strong> tap ☆ next to a team to pin it to "My teams" at the top.</li>
-            <li><strong>Colors:</strong> open ☰ Settings to pick a theme, including your favorite team's colors.</li>
-            <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search and <kbd>Esc</kbd> to close a window.</li>
+            <li><strong>Colors:</strong> open ☰ and pick a theme, including your favorite team's colors.</li>
+            <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search teams and <kbd>Esc</kbd> to close a window.</li>
         </ul>
         <p class="modal-sub">Data from the MLB Stats API.</p>
     </div>
@@ -238,9 +330,11 @@
 
 <footer class="site-footer">
     ⚾ Built by Zachary Sheppard — MLB Stats Explorer © 2025
+    <button class="link-btn install-btn" id="installBtn" hidden>Install as an app</button>
 </footer>
 
 <!-- Updated script version for cache busting -->
-<script src="script.js?v=10"></script>
+<script src="script.js?v=11"></script>
+<script src="extras.js?v=1"></script>
 </body>
 </html>
