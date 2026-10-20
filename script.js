@@ -235,7 +235,12 @@ const state = {
     teams: [],               // [{id, name, abbreviation, divKey, ...}]
     standings: {},           // teamId -> standings record
     favorites: readJSON("favorites", []).map(Number),
-    rosterCache: {},         // teamId -> players[]
+    season: SEASON,          // season being viewed (picker in the toolbar)
+    rosterCache: {},         // "season-teamId" -> players[]
+    careerCache: {},         // playerId -> { person, hitting, pitching } (career + year-by-year)
+    playerView: "season",    // player window tab: season | career | years
+    teamAbbr: {},            // teamId -> abbreviation (for year-by-year tables)
+    teamParamHandled: false,
     currentTeam: null,
     currentTab: "hitters",
     sort: { hitters: { key: "pos", dir: 1 }, pitchers: { key: "role", dir: 1 } },
@@ -249,7 +254,10 @@ const teamById = id => state.teams.find(t => t.id === Number(id));
 // INIT PAGE
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("seasonLabel").textContent = SEASON;
+    document.getElementById("seasonLabel").textContent = state.season;
+    setupSeasonPicker();
+    setupPlayerWindow();
+    setupCompare();
     applyThemeChoice(getThemeChoice());
     restoreDivisionState();
     setupMenu();
@@ -272,26 +280,36 @@ async function loadTeamList() {
     } catch (err) {
         console.warn("Backend /api/teams unavailable, using MLB API directly.", err);
     }
-    const data = await fetchJSON(`${MLB_API}/teams?sportId=1&season=${SEASON}`);
+    const data = await fetchJSON(`${MLB_API}/teams?sportId=1&season=${state.season}`);
     return data.teams;
 }
 
 async function loadStandings() {
     const data = await fetchJSON(
-        `${MLB_API}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason&hydrate=division,team`
+        `${MLB_API}/standings?leagueId=103,104&season=${state.season}&standingsTypes=regularSeason&hydrate=division,team`
     );
     return data.records || [];
 }
 
 async function loadData() {
-    showStatus("loading", "Loading teams and standings…");
+    state.teams = [];
+    state.standings = {};
+    const loadingSeason = state.season;
+    showStatus("loading", loadingSeason === SEASON
+        ? "Loading teams and standings…"
+        : `Loading ${loadingSeason} standings…`);
     // Free Render apps go to sleep and take a while to wake up. Tell the user why it's slow.
     const slowTimer = setTimeout(() => {
         showStatus("loading", "Still loading… the server may be waking up. This can take up to a minute the first time.");
     }, 5000);
 
-    const [teamsResult, standingsResult] = await Promise.allSettled([loadTeamList(), loadStandings()]);
+    // Past seasons: the teams come straight from that year's standings
+    const [teamsResult, standingsResult] = await Promise.allSettled([
+        state.season === SEASON ? loadTeamList() : Promise.resolve(null),
+        loadStandings()
+    ]);
     clearTimeout(slowTimer);
+    if (loadingSeason !== state.season) return; // user picked another year while this loaded
 
     // Standings
     let records = [];
@@ -313,7 +331,7 @@ async function loadData() {
     }
 
     if (!teams) {
-        console.error("Teams Load Error:", teamsResult.reason);
+        console.error("Teams Load Error:", teamsResult.reason || standingsResult.reason);
         showStatus("error", "Couldn't load teams. Check your connection and try again.", true);
         return;
     }
@@ -321,6 +339,7 @@ async function loadData() {
     state.teams = teams
         .map(t => ({ ...t, divKey: divisionKey(t.division) || state.standings[t.id]?.divKey }))
         .filter(t => t.divKey);
+    state.teams.forEach(t => { if (t.abbreviation) state.teamAbbr[t.id] = t.abbreviation; });
 
     renderDivisions(records);
     renderFavorites();
@@ -332,7 +351,8 @@ async function loadData() {
     }
 
     // Links like index.html?team=158 (used by the Favorites page) open that team's roster
-    const teamParam = new URLSearchParams(location.search).get("team");
+    const teamParam = state.teamParamHandled ? null : new URLSearchParams(location.search).get("team");
+    state.teamParamHandled = true;
     if (teamParam && teamById(teamParam) && !anyModalOpen()) {
         openRosterModal(teamById(teamParam));
     }
@@ -348,12 +368,6 @@ function showStatus(type, message, withRetry = false) {
     banner.hidden = false;
     if (withRetry) {
         document.getElementById("retryBtn").addEventListener("click", () => {
-            state.teams = [];
-            state.standings = {};
-            Object.values(DIVISION_IDS).forEach(key => {
-                document.getElementById(key).innerHTML = "";
-                document.getElementById(`${key}-standings`).innerHTML = "";
-            });
             loadData();
         });
     }
@@ -401,6 +415,11 @@ const CLINCH = {
 };
 
 function renderDivisions(records) {
+    // Clear every table first: older seasons had fewer divisions (no Central before 1994)
+    Object.values(DIVISION_IDS).forEach(key => {
+        document.getElementById(`${key}-standings`).innerHTML = "";
+    });
+
     // Team cards, ordered by standings rank when available
     Object.values(DIVISION_IDS).forEach(key => {
         const teams = state.teams
@@ -585,12 +604,13 @@ function applySearch(raw) {
             if (show && el.classList.contains("standings-row")) matches++;
         });
         totalMatches += matches;
-        details.hidden = q && matches === 0;
+        const hasTeams = details.querySelector(".standings-row") !== null;
+        details.hidden = !hasTeams || (q && matches === 0);
         if (q && matches > 0) details.open = true;
     });
 
     document.querySelectorAll("section.league").forEach(sec => {
-        sec.hidden = q && !sec.querySelector("details:not([hidden])");
+        sec.hidden = state.teams.length > 0 && !sec.querySelector("details:not([hidden])");
     });
 
     // Favorites follow the search too
@@ -769,7 +789,7 @@ function setupModals() {
             return;
         }
         if (e.target.closest("#rosterRetry")) {
-            delete state.rosterCache[state.currentTeam.id];
+            delete state.rosterCache[rosterKey(state.currentTeam.id)];
             openRosterModal(state.currentTeam);
             return;
         }
@@ -859,6 +879,8 @@ function parseRoster(roster) {
     });
 }
 
+const rosterKey = teamId => `${state.season}-${teamId}`;
+
 async function openRosterModal(team, opener) {
     state.currentTeam = team;
     state.currentTab = "hitters";
@@ -868,21 +890,22 @@ async function openRosterModal(team, opener) {
     logo.dataset.fallback = logoFallbackUrl(team.id);
     logo.src = logoUrl(team.id);
     document.getElementById("rosterSub").textContent = recordText(team.id)
-        ? `${recordText(team.id)} · ${SEASON} season stats`
-        : `${SEASON} season stats`;
+        ? `${recordText(team.id)} · ${state.season} season stats`
+        : `${state.season} season stats`;
     document.getElementById("rosterTabs").innerHTML = "";
     document.getElementById("rosterBody").innerHTML =
         `<div class="loading-block"><span class="spinner" aria-hidden="true"></span> Loading roster…</div>`;
     openModal("rosterModal", opener);
 
-    if (!state.rosterCache[team.id]) {
+    const key = rosterKey(team.id);
+    if (!state.rosterCache[key]) {
         try {
             // One request gets the whole active roster *with* each player's season stats
             const data = await fetchJSON(
-                `${MLB_API}/teams/${team.id}/roster?rosterType=active&season=${SEASON}` +
-                `&hydrate=person(stats(type=season,season=${SEASON},group=[hitting,pitching]))`
+                `${MLB_API}/teams/${team.id}/roster?rosterType=${state.season === SEASON ? "active" : "fullSeason"}&season=${state.season}` +
+                `&hydrate=person(stats(type=season,season=${state.season},group=[hitting,pitching]))`
             );
-            state.rosterCache[team.id] = parseRoster(data.roster || []);
+            state.rosterCache[key] = parseRoster(data.roster || []);
         } catch (err) {
             console.error("Roster Load Error:", err);
             if (state.currentTeam !== team) return;
@@ -899,7 +922,7 @@ async function openRosterModal(team, opener) {
 }
 
 function renderRoster() {
-    const players = state.rosterCache[state.currentTeam.id] || [];
+    const players = state.rosterCache[rosterKey(state.currentTeam.id)] || [];
     const hitters = players.filter(p => p.inHitters);
     const pitchers = players.filter(p => p.inPitchers);
     const tab = state.currentTab;
@@ -967,7 +990,7 @@ function renderRoster() {
 
     document.getElementById("rosterBody").innerHTML = list.length ? `
         <p class="table-hint">${noStats
-            ? `No ${SEASON} stats yet for these players.`
+            ? `No ${state.season} stats yet for these players.`
             : "Click a column to sort · click a player for details"}</p>
         <div class="table-scroll">
             <table class="stats-table">
@@ -980,7 +1003,136 @@ function renderRoster() {
 
 
 // =========================
-// PLAYER BIO POPUP
+// SEASON PICKER
+// =========================
+const FIRST_SEASON = 1969; // first year MLB had divisions
+
+function setupSeasonPicker() {
+    const select = document.getElementById("seasonSelect");
+    let options = "";
+    for (let y = SEASON; y >= FIRST_SEASON; y--) options += `<option value="${y}">${y}</option>`;
+    select.innerHTML = options;
+    select.value = String(state.season);
+
+    select.addEventListener("change", () => {
+        state.season = Number(select.value);
+        document.getElementById("seasonLabel").textContent = state.season;
+        loadData();
+    });
+}
+
+
+// =========================
+// CAREER + YEAR-BY-YEAR DATA (shared by player window and compare)
+// =========================
+const HIT_STATS = [
+    { key: "gamesPlayed", label: "G", title: "Games" },
+    { key: "plateAppearances", label: "PA", title: "Plate appearances" },
+    { key: "atBats", label: "AB", title: "At bats" },
+    { key: "runs", label: "R", title: "Runs" },
+    { key: "hits", label: "H", title: "Hits" },
+    { key: "doubles", label: "2B", title: "Doubles" },
+    { key: "triples", label: "3B", title: "Triples" },
+    { key: "homeRuns", label: "HR", title: "Home runs" },
+    { key: "rbi", label: "RBI", title: "Runs batted in" },
+    { key: "stolenBases", label: "SB", title: "Stolen bases" },
+    { key: "baseOnBalls", label: "BB", title: "Walks" },
+    { key: "strikeOuts", label: "SO", title: "Strikeouts", lowerIsBetter: true },
+    { key: "avg", label: "AVG", title: "Batting average" },
+    { key: "obp", label: "OBP", title: "On-base percentage" },
+    { key: "slg", label: "SLG", title: "Slugging percentage" },
+    { key: "ops", label: "OPS", title: "On-base plus slugging" }
+];
+
+const PITCH_STATS = [
+    { key: "wins", label: "W", title: "Wins" },
+    { key: "losses", label: "L", title: "Losses", lowerIsBetter: true },
+    { key: "era", label: "ERA", title: "Earned run average", lowerIsBetter: true },
+    { key: "gamesPitched", label: "G", title: "Games pitched" },
+    { key: "gamesStarted", label: "GS", title: "Games started" },
+    { key: "saves", label: "SV", title: "Saves" },
+    { key: "inningsPitched", label: "IP", title: "Innings pitched" },
+    { key: "strikeOuts", label: "SO", title: "Strikeouts" },
+    { key: "baseOnBalls", label: "BB", title: "Walks allowed", lowerIsBetter: true },
+    { key: "homeRuns", label: "HR", title: "Home runs allowed", lowerIsBetter: true },
+    { key: "whip", label: "WHIP", title: "Walks + hits per inning", lowerIsBetter: true },
+    { key: "avg", label: "Opp AVG", title: "Opponents' batting average", lowerIsBetter: true }
+];
+
+// Short stat lists for the year-by-year tables
+const HIT_YEAR_KEYS = ["gamesPlayed", "atBats", "hits", "homeRuns", "rbi", "stolenBases", "avg", "obp", "ops"];
+const PITCH_YEAR_KEYS = ["wins", "losses", "era", "gamesPitched", "gamesStarted", "saves", "inningsPitched", "strikeOuts", "whip"];
+
+const statDefs = group => (group === "pitching" ? PITCH_STATS : HIT_STATS);
+
+function teamShort(team) {
+    if (!team) return "";
+    return state.teamAbbr[team.id] || team.abbreviation || team.name || "";
+}
+
+// Turn an MLB "people" record (hydrated with career + yearByYear stats) into something easy to use
+function parseCareer(person) {
+    const out = { person, hitting: null, pitching: null };
+    ["hitting", "pitching"].forEach(group => {
+        const entries = (person.stats || []).filter(s => s.group?.displayName === group);
+        const isMLB = sp => !sp.sport || sp.sport.id === 1;
+        const career = entries.find(s => s.type?.displayName === "career")?.splits?.find(isMLB)?.stat || null;
+        const yearSplits = (entries.find(s => s.type?.displayName === "yearByYear")?.splits || []).filter(isMLB);
+
+        // One row per season. Traded players have a row per team plus a combined row (no team).
+        const bySeason = new Map();
+        yearSplits.forEach(sp => {
+            if (!bySeason.has(sp.season)) bySeason.set(sp.season, []);
+            bySeason.get(sp.season).push(sp);
+        });
+        const years = [...bySeason.entries()]
+            .map(([season, splits]) => {
+                const teamSplits = splits.filter(sp => sp.team);
+                const total = splits.find(sp => !sp.team) || splits[0];
+                const teamLabel = teamSplits.length > 1
+                    ? teamSplits.map(sp => teamShort(sp.team)).join(" / ")
+                    : teamShort(total.team || teamSplits[0]?.team);
+                return { season: Number(season), team: teamLabel, stat: total.stat };
+            })
+            .sort((a, b) => a.season - b.season);
+
+        if (career || years.length) out[group] = { career, years };
+    });
+    return out;
+}
+
+async function loadCareers(ids) {
+    const missing = ids.filter(id => !state.careerCache[id]);
+    if (missing.length) {
+        const data = await fetchJSON(
+            `${MLB_API}/people?personIds=${missing.join(",")}` +
+            `&hydrate=currentTeam,stats(group=[hitting,pitching],type=[career,yearByYear])`
+        );
+        (data.people || []).forEach(person => { state.careerCache[person.id] = parseCareer(person); });
+    }
+    return ids.map(id => state.careerCache[id]).filter(Boolean);
+}
+
+function seasonSpan(career, group) {
+    const years = career?.[group]?.years || [];
+    if (!years.length) return "";
+    const first = years[0].season;
+    const last = years[years.length - 1].season;
+    return first === last ? `${first}` : `${first}–${last}`;
+}
+
+// Which stat groups matter for a player (pitchers: pitching, two-way: both, everyone else: hitting)
+function groupsFor(person) {
+    const type = person?.primaryPosition?.type || "";
+    const abbr = person?.primaryPosition?.abbreviation || "";
+    if (type === "Two-Way Player" || abbr === "TWP") return ["hitting", "pitching"];
+    if (type === "Pitcher" || abbr === "P") return ["pitching"];
+    return ["hitting"];
+}
+
+
+// =========================
+// PLAYER WINDOW
 // =========================
 function formatDate(iso) {
     if (!iso) return "—";
@@ -996,9 +1148,46 @@ function statTiles(title, items) {
     return tiles ? `<h3 class="stats-title">${title}</h3><div class="stat-tiles">${tiles}</div>` : "";
 }
 
+function hittingTiles(title, h) {
+    return statTiles(title, [
+        ["G", h.gamesPlayed], ["AVG", h.avg], ["HR", h.homeRuns], ["RBI", h.rbi],
+        ["R", h.runs], ["H", h.hits], ["SB", h.stolenBases], ["BB", h.baseOnBalls],
+        ["SO", h.strikeOuts], ["OBP", h.obp], ["SLG", h.slg], ["OPS", h.ops]
+    ]);
+}
+
+function pitchingTiles(title, pi) {
+    return statTiles(title, [
+        ["W-L", pi.wins != null ? `${pi.wins}-${pi.losses}` : null], ["ERA", pi.era], ["G", pi.gamesPitched], ["GS", pi.gamesStarted],
+        ["SV", pi.saves], ["IP", pi.inningsPitched], ["SO", pi.strikeOuts], ["BB", pi.baseOnBalls],
+        ["WHIP", pi.whip], ["HR", pi.homeRuns], ["AVG", pi.avg], ["HLD", pi.holds]
+    ]);
+}
+
+function yearTable(group, data) {
+    const keys = group === "pitching" ? PITCH_YEAR_KEYS : HIT_YEAR_KEYS;
+    const defs = keys.map(k => statDefs(group).find(d => d.key === k));
+    const head = `<tr><th class="name-col"><span class="th-text">Year</span></th><th><span class="th-text">Team</span></th>${
+        defs.map(d => `<th title="${esc(d.title)}"><span class="th-text">${d.label}</span></th>`).join("")}</tr>`;
+    const rows = data.years.map(y => `
+        <tr><td class="name-col">${y.season}</td><td class="team-td">${esc(y.team)}</td>${
+        defs.map(d => `<td>${esc(y.stat?.[d.key] ?? "—")}</td>`).join("")}</tr>`).join("");
+    const careerRow = data.career ? `
+        <tr class="career-row"><td class="name-col">Career</td><td></td>${
+        defs.map(d => `<td>${esc(data.career[d.key] ?? "—")}</td>`).join("")}</tr>` : "";
+    return `
+        <h3 class="stats-title">${group === "pitching" ? "Pitching" : "Hitting"} by year</h3>
+        <div class="table-scroll"><table class="stats-table year-table">
+            <thead>${head}</thead><tbody>${rows}${careerRow}</tbody>
+        </table></div>`;
+}
+
+let currentPlayer = null; // roster entry shown in the player window
+
 function openPlayerModal(id, opener) {
-    const p = (state.rosterCache[state.currentTeam?.id] || []).find(x => x.id === id);
+    const p = (state.rosterCache[rosterKey(state.currentTeam?.id)] || []).find(x => x.id === id);
     if (!p) return;
+    currentPlayer = p;
     const person = p.person;
 
     const img = document.getElementById("playerHeadshot");
@@ -1021,24 +1210,353 @@ function openPlayerModal(id, opener) {
         .map(([label, v]) => `<div><span>${label}</span><strong>${esc(v ?? "—")}</strong></div>`)
         .join("");
 
-    let statsHTML = "";
-    const h = p.hitting;
-    const pi = p.pitching;
-    if (p.inHitters && h) {
-        statsHTML += statTiles(`${SEASON} Hitting`, [
-            ["G", h.gamesPlayed], ["AVG", h.avg], ["HR", h.homeRuns], ["RBI", h.rbi],
-            ["R", h.runs], ["H", h.hits], ["SB", h.stolenBases], ["BB", h.baseOnBalls],
-            ["SO", h.strikeOuts], ["OBP", h.obp], ["SLG", h.slg], ["OPS", h.ops]
-        ]);
-    }
-    if (p.inPitchers && pi) {
-        statsHTML += statTiles(`${SEASON} Pitching`, [
-            ["W-L", `${pi.wins}-${pi.losses}`], ["ERA", pi.era], ["G", pi.gamesPitched], ["GS", pi.gamesStarted],
-            ["SV", pi.saves], ["IP", pi.inningsPitched], ["SO", pi.strikeOuts], ["BB", pi.baseOnBalls],
-            ["WHIP", pi.whip], ["HR", pi.homeRuns], ["AVG", pi.avg], ["HLD", pi.holds]
-        ]);
-    }
-    document.getElementById("playerStats").innerHTML = statsHTML || `<p class="empty-hint">No ${SEASON} stats yet.</p>`;
-
+    state.playerView = "season";
+    renderPlayerView();
     openModal("playerModal", opener);
+
+    // Fetch career numbers in the background so the Career / By year tabs open instantly
+    loadCareers([id]).then(() => {
+        if (currentPlayer === p && state.playerView !== "season") renderPlayerView();
+    }).catch(err => console.warn("Career stats unavailable:", err));
+}
+
+async function renderPlayerView() {
+    const p = currentPlayer;
+    if (!p) return;
+    const view = state.playerView;
+
+    document.getElementById("playerViewTabs").innerHTML = [
+        { key: "season", label: `${state.season} season` },
+        { key: "career", label: "Career" },
+        { key: "years", label: "By year" }
+    ].map(t => `<button class="tab-btn ${t.key === view ? "active" : ""}" data-view="${t.key}"
+        aria-pressed="${t.key === view}">${t.label}</button>`).join("");
+
+    const box = document.getElementById("playerStats");
+    const groups = [p.inHitters && "hitting", p.inPitchers && "pitching"].filter(Boolean);
+
+    if (view === "season") {
+        let html = "";
+        if (p.inHitters && p.hitting) html += hittingTiles(`${state.season} hitting`, p.hitting);
+        if (p.inPitchers && p.pitching) html += pitchingTiles(`${state.season} pitching`, p.pitching);
+        box.innerHTML = html || `<p class="empty-hint">No ${state.season} stats for this player.</p>`;
+        return;
+    }
+
+    let career = state.careerCache[p.id];
+    if (!career) {
+        box.innerHTML = `<div class="loading-block"><span class="spinner" aria-hidden="true"></span> Loading career stats…</div>`;
+        try {
+            [career] = await loadCareers([p.id]);
+        } catch {
+            box.innerHTML = `<p class="empty-hint">Career stats couldn't be loaded. Try again in a moment.</p>`;
+            return;
+        }
+        if (currentPlayer !== p || state.playerView !== view) return;
+    }
+
+    let html = "";
+    groups.forEach(group => {
+        const data = career?.[group];
+        if (!data) return;
+        if (view === "career" && data.career) {
+            const span = seasonSpan(career, group);
+            const label = group === "pitching" ? "Career pitching" : "Career hitting";
+            html += (group === "pitching" ? pitchingTiles : hittingTiles)(
+                `${label}${span ? ` <small>${span} · ${data.years.length} season${data.years.length === 1 ? "" : "s"}</small>` : ""}`,
+                data.career);
+        }
+        if (view === "years" && data.years.length) html += yearTable(group, data);
+    });
+    box.innerHTML = html || `<p class="empty-hint">No MLB career stats for this player yet.</p>`;
+}
+
+function setupPlayerWindow() {
+    document.getElementById("playerViewTabs").addEventListener("click", e => {
+        const btn = e.target.closest("[data-view]");
+        if (!btn) return;
+        state.playerView = btn.dataset.view;
+        renderPlayerView();
+    });
+    document.getElementById("compareFromPlayer").addEventListener("click", () => {
+        if (!currentPlayer) return;
+        addToCompare(currentPlayer.id, currentPlayer.person);
+        openCompare(document.getElementById("compareFromPlayer"));
+    });
+}
+
+
+// =========================
+// COMPARE PLAYERS
+// =========================
+const MAX_COMPARE = 4;
+
+const compare = {
+    ids: readJSON("compareIds", []).map(Number).filter(Boolean).slice(0, MAX_COMPARE),
+    mode: "career",       // career | season
+    group: null,          // hitting | pitching (null = pick automatically)
+    season: null,         // chosen season in "season" mode
+    searchTimer: null,
+    searchSeq: 0
+};
+
+function saveCompare() {
+    writeJSON("compareIds", compare.ids);
+}
+
+function addToCompare(id, person) {
+    id = Number(id);
+    if (compare.ids.includes(id)) return true;
+    if (compare.ids.length >= MAX_COMPARE) {
+        showToast(`You can compare up to ${MAX_COMPARE} players. Remove one first.`);
+        return false;
+    }
+    compare.ids.push(id);
+    saveCompare();
+    if (person && !state.careerCache[id]) {
+        // Show the name right away; stats arrive with loadCareers
+        compare.pending = compare.pending || {};
+        compare.pending[id] = person;
+    }
+    return true;
+}
+
+function removeFromCompare(id) {
+    compare.ids = compare.ids.filter(x => x !== Number(id));
+    saveCompare();
+    renderCompare();
+}
+
+function openCompare(opener) {
+    openModal("compareModal", opener);
+    document.getElementById("compareSearch").focus();
+    renderCompare();
+}
+
+function setupCompare() {
+    const input = document.getElementById("compareSearch");
+    const results = document.getElementById("compareResults");
+
+    document.getElementById("compareBtn").addEventListener("click", () => {
+        document.getElementById("closeMenuBtn").click();
+        openCompare(document.getElementById("menuBtn"));
+    });
+    document.getElementById("closeCompare").addEventListener("click", () => closeModal("compareModal"));
+
+    input.addEventListener("input", () => {
+        clearTimeout(compare.searchTimer);
+        const q = input.value.trim();
+        if (q.length < 2) { results.hidden = true; results.innerHTML = ""; return; }
+        compare.searchTimer = setTimeout(() => searchPlayers(q), 250);
+    });
+    input.addEventListener("keydown", e => {
+        if (e.key === "ArrowDown") {
+            const first = results.querySelector("button");
+            if (first) { e.preventDefault(); first.focus(); }
+        }
+        if (e.key === "Escape" && input.value) {
+            e.stopPropagation();
+            input.value = "";
+            results.hidden = true;
+        }
+    });
+    results.addEventListener("keydown", e => {
+        const items = [...results.querySelectorAll("button")];
+        const i = items.indexOf(document.activeElement);
+        if (e.key === "ArrowDown" && i < items.length - 1) { e.preventDefault(); items[i + 1].focus(); }
+        if (e.key === "ArrowUp") { e.preventDefault(); (i > 0 ? items[i - 1] : input).focus(); }
+    });
+    results.addEventListener("click", e => {
+        const btn = e.target.closest("[data-person-id]");
+        if (!btn) return;
+        const person = compare.lastResults?.find(x => x.id === Number(btn.dataset.personId));
+        const added = addToCompare(btn.dataset.personId, person);
+        results.hidden = true;
+        results.innerHTML = "";
+        if (added) {
+            input.value = "";
+            input.focus();
+            renderCompare();
+        }
+    });
+
+    // Clicking anywhere else closes the search results
+    document.getElementById("compareModal").addEventListener("click", e => {
+        if (!e.target.closest(".compare-search")) results.hidden = true;
+    });
+    input.addEventListener("focus", () => {
+        if (results.innerHTML && input.value.trim().length >= 2) results.hidden = false;
+    });
+
+    document.getElementById("compareChips").addEventListener("click", e => {
+        const btn = e.target.closest("[data-remove]");
+        if (btn) removeFromCompare(btn.dataset.remove);
+    });
+
+    document.getElementById("compareControls").addEventListener("click", e => {
+        const g = e.target.closest("[data-cmp-group]");
+        if (g) { compare.group = g.dataset.cmpGroup; compare.season = null; renderCompare(); return; }
+        const m = e.target.closest("[data-cmp-mode]");
+        if (m) { compare.mode = m.dataset.cmpMode; renderCompare(); }
+    });
+    document.getElementById("compareSeason").addEventListener("change", e => {
+        compare.season = Number(e.target.value);
+        renderCompare();
+    });
+
+    document.getElementById("compareClear").addEventListener("click", () => {
+        compare.ids = [];
+        compare.group = null;
+        compare.season = null;
+        saveCompare();
+        renderCompare();
+    });
+}
+
+async function searchPlayers(q) {
+    const results = document.getElementById("compareResults");
+    const seq = ++compare.searchSeq;
+    results.hidden = false;
+    results.innerHTML = `<li class="result-note">Searching…</li>`;
+    try {
+        const data = await fetchJSON(`${MLB_API}/people/search?names=${encodeURIComponent(q)}&sportIds=1&limit=25`);
+        if (seq !== compare.searchSeq) return; // a newer search is running
+        // Only people who actually played in the majors
+        const people = (data.people || []).filter(x => x.mlbDebutDate).slice(0, 8);
+        compare.lastResults = people;
+        results.innerHTML = people.length
+            ? people.map(x => {
+                const added = compare.ids.includes(x.id);
+                const debut = x.mlbDebutDate.slice(0, 4);
+                return `<li><button type="button" data-person-id="${x.id}" ${added ? "disabled" : ""}>
+                    <img src="${headshotUrl(x.id, 60)}" alt="" loading="lazy">
+                    <span><strong>${esc(x.fullName)}</strong>
+                    <small>${esc(x.primaryPosition?.abbreviation || "")} · debut ${debut}${x.active ? " · active" : ""}${added ? " · added" : ""}</small></span>
+                </button></li>`;
+            }).join("")
+            : `<li class="result-note">No MLB players match "${esc(q)}".</li>`;
+    } catch (err) {
+        if (seq !== compare.searchSeq) return;
+        console.error("Player search error:", err);
+        results.innerHTML = `<li class="result-note">Search isn't available right now. Try again in a moment.</li>`;
+    }
+}
+
+function seasonLine(career, group, season) {
+    return career?.[group]?.years.find(y => y.season === season) || null;
+}
+
+async function renderCompare() {
+    const chips = document.getElementById("compareChips");
+    const body = document.getElementById("compareBody");
+    const controls = document.getElementById("compareControls");
+    const clearBtn = document.getElementById("compareClear");
+
+    if (!compare.ids.length) {
+        chips.innerHTML = "";
+        controls.hidden = true;
+        clearBtn.hidden = true;
+        body.innerHTML = `<p class="empty-hint compare-empty">Search for a player above to start. You can compare up to ${MAX_COMPARE}, past or present.</p>`;
+        return;
+    }
+    clearBtn.hidden = false;
+
+    // Chips first (names may be known before stats load)
+    const nameOf = id => state.careerCache[id]?.person.fullName || compare.pending?.[id]?.fullName || "Loading…";
+    const renderChips = () => {
+        chips.innerHTML = compare.ids.map(id => {
+            const c = state.careerCache[id];
+            const span = c ? (seasonSpan(c, "hitting") || seasonSpan(c, "pitching")) : "";
+            return `<span class="compare-chip">
+                <img src="${headshotUrl(id, 60)}" alt="" loading="lazy">
+                <span><strong>${esc(nameOf(id))}</strong>${span ? `<small>${span}</small>` : ""}</span>
+                <button type="button" data-remove="${id}" aria-label="Remove ${esc(nameOf(id))}">&times;</button>
+            </span>`;
+        }).join("");
+    };
+    renderChips();
+
+    let careers;
+    if (compare.ids.some(id => !state.careerCache[id])) {
+        body.innerHTML = `<div class="loading-block"><span class="spinner" aria-hidden="true"></span> Loading stats…</div>`;
+        try {
+            careers = await loadCareers(compare.ids);
+        } catch (err) {
+            console.error("Compare load error:", err);
+            body.innerHTML = `<p class="empty-hint">Stats couldn't be loaded. Check your connection and try again.</p>`;
+            return;
+        }
+        renderChips();
+    }
+    careers = compare.ids.map(id => state.careerCache[id]).filter(Boolean);
+    const ids = careers.map(c => c.person.id);
+
+    // Hitting or pitching: default to pitching only when every player is a pitcher
+    const group = compare.group ||
+        (careers.every(c => groupsFor(c.person)[0] === "pitching") ? "pitching" : "hitting");
+
+    // Seasons available for this group; default to the latest year they all played
+    const seasonSets = careers.map(c => new Set((c[group]?.years || []).map(y => y.season)));
+    const allSeasons = [...new Set(seasonSets.flatMap(s => [...s]))].sort((a, b) => b - a);
+    const shared = allSeasons.filter(y => seasonSets.every(s => s.has(y)));
+    if (!compare.season || !allSeasons.includes(compare.season)) compare.season = shared[0] || allSeasons[0] || null;
+
+    controls.hidden = false;
+    controls.querySelectorAll("[data-cmp-group]").forEach(b => {
+        b.classList.toggle("active", b.dataset.cmpGroup === group);
+        b.setAttribute("aria-pressed", b.dataset.cmpGroup === group);
+    });
+    controls.querySelectorAll("[data-cmp-mode]").forEach(b => {
+        b.classList.toggle("active", b.dataset.cmpMode === compare.mode);
+        b.setAttribute("aria-pressed", b.dataset.cmpMode === compare.mode);
+    });
+    const seasonSelect = document.getElementById("compareSeason");
+    seasonSelect.hidden = compare.mode !== "season";
+    seasonSelect.innerHTML = allSeasons.map(y =>
+        `<option value="${y}">${y}${seasonSets.length > 1 && shared.includes(y) ? "" : seasonSets.length > 1 ? " (not all played)" : ""}</option>`).join("");
+    if (compare.season) seasonSelect.value = String(compare.season);
+
+    // Build the rows
+    const lines = careers.map(c => compare.mode === "career"
+        ? (c[group]?.career ? { stat: c[group].career, team: seasonSpan(c, group) } : null)
+        : seasonLine(c, group, compare.season));
+
+    const defs = statDefs(group);
+    const headCells = careers.map(c => `
+        <th scope="col"><div class="cmp-player">
+            <img src="${headshotUrl(c.person.id, 80)}" alt="" loading="lazy">
+            <span>${esc(c.person.fullName)}</span>
+        </div></th>`).join("");
+
+    const infoRow = `<tr class="info-row"><th scope="row">${compare.mode === "career" ? "Seasons" : "Team"}</th>${
+        lines.map(l => `<td>${l ? esc(l.team || "—") : `<span class="muted">${compare.mode === "career" ? "No stats" : "Didn't play"}</span>`}</td>`).join("")}</tr>`;
+
+    const statRows = defs.map(d => {
+        const values = lines.map(l => (l ? num(l.stat?.[d.key]) : null));
+        const present = values.filter(v => v !== null);
+        let best = null;
+        if (present.length > 1 && new Set(present).size > 1) {
+            best = d.lowerIsBetter ? Math.min(...present) : Math.max(...present);
+        }
+        const cells = lines.map((l, i) => {
+            const raw = l?.stat?.[d.key];
+            const isBest = best !== null && values[i] === best;
+            return `<td class="${isBest ? "best" : ""}">${raw ?? "—"}${isBest ? '<span class="visually-hidden"> (best)</span>' : ""}</td>`;
+        }).join("");
+        return `<tr><th scope="row" title="${esc(d.title)}">${d.label}</th>${cells}</tr>`;
+    }).join("");
+
+    const noneHaveGroup = lines.every(l => !l);
+    body.innerHTML = noneHaveGroup
+        ? `<p class="empty-hint compare-empty">None of these players have MLB ${group} stats${compare.mode === "season" ? ` in ${compare.season}` : ""}. Try ${group === "pitching" ? "Hitting" : "Pitching"}.</p>`
+        : `
+        <div class="table-scroll">
+            <table class="compare-table">
+                <thead><tr><th scope="col"><span class="visually-hidden">Stat</span></th>${headCells}</tr></thead>
+                <tbody>${infoRow}${statRows}</tbody>
+            </table>
+        </div>
+        <p class="table-hint">${ids.length > 1
+            ? "The best number in each row is highlighted. For ERA, WHIP, walks and similar stats, lower is better."
+            : "Add another player to compare."}</p>`;
 }

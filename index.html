@@ -17,7 +17,7 @@
     <link rel="icon" type="image/svg+xml" href="https://www.mlbstatic.com/team-logos/158.svg">
 
     <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
-    <link rel="stylesheet" href="style.css?v=7" />
+    <link rel="stylesheet" href="style.css?v=8" />
 </head>
 
 <body>
@@ -58,6 +58,7 @@
     </div>
 
     <div class="menu-links">
+        <button class="menu-item help-link" id="compareBtn">⚖️ Compare players</button>
         <a class="menu-item help-link" href="favorites.html">⭐ Favorite Teams</a>
         <button class="menu-item help-link" id="helpBtn">❓ Help &amp; Info</button>
     </div>
@@ -72,6 +73,10 @@
             <span class="search-icon" aria-hidden="true">🔍</span>
             <input type="search" id="teamSearch" placeholder="Find a team (e.g. Cubs, NYY, Seattle)…" aria-label="Search teams" autocomplete="off">
         </div>
+        <label class="season-picker">
+            <span>Season</span>
+            <select id="seasonSelect" aria-label="Season to show"></select>
+        </label>
         <button class="ghost-btn" id="toggleAllBtn">Collapse all</button>
     </div>
 
@@ -160,7 +165,50 @@
         <h2 id="playerName"></h2>
         <p id="playerTeam" class="player-team"></p>
         <div id="playerInfo" class="bio-grid"></div>
+        <div class="player-tabs-row">
+            <div class="roster-tabs" id="playerViewTabs" role="group" aria-label="Which stats to show"></div>
+            <button class="ghost-btn" id="compareFromPlayer">⚖️ Compare</button>
+        </div>
         <div id="playerStats"></div>
+    </div>
+</div>
+
+<!-- COMPARE PLAYERS MODAL -->
+<div id="compareModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="compareTitle" hidden>
+    <div class="modal-content compare-modal">
+        <div class="modal-head">
+            <div>
+                <h2 id="compareTitle">Compare players</h2>
+                <p class="modal-sub">Line up to four players, by career or by a single season.</p>
+            </div>
+            <button class="close-btn" id="closeCompare" aria-label="Close compare">&times;</button>
+        </div>
+
+        <div class="compare-search">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="compareSearch" placeholder="Add a player (e.g. Judge, Ohtani, Babe Ruth)…"
+                   autocomplete="off" aria-label="Search players to compare" aria-controls="compareResults">
+            <ul id="compareResults" class="compare-results" hidden></ul>
+        </div>
+
+        <div class="compare-chips-row">
+            <div id="compareChips" class="compare-chips"></div>
+            <button class="ghost-btn small" id="compareClear" hidden>Clear all</button>
+        </div>
+
+        <div class="compare-controls" id="compareControls" hidden>
+            <div class="roster-tabs" role="group" aria-label="Stat type">
+                <button class="tab-btn" data-cmp-group="hitting">Hitting</button>
+                <button class="tab-btn" data-cmp-group="pitching">Pitching</button>
+            </div>
+            <div class="roster-tabs" role="group" aria-label="Time span">
+                <button class="tab-btn" data-cmp-mode="career">Career</button>
+                <button class="tab-btn" data-cmp-mode="season">Single season</button>
+            </div>
+            <select id="compareSeason" aria-label="Season to compare" hidden></select>
+        </div>
+
+        <div id="compareBody"></div>
     </div>
 </div>
 
@@ -175,7 +223,9 @@
             <li><strong>Find a team:</strong> type in the search box, or scroll through the divisions.</li>
             <li><strong>See a roster:</strong> click any team in the standings. Stats are for the current season.</li>
             <li><strong>Sort stats:</strong> click a column header in the roster (e.g. HR or ERA).</li>
-            <li><strong>Player details:</strong> click a player for their bio and season line.</li>
+            <li><strong>Other seasons:</strong> use the Season menu next to search to see standings and rosters from any year back to 1969.</li>
+            <li><strong>Player details:</strong> click a player for their bio, season line, career totals and year-by-year stats.</li>
+            <li><strong>Compare players:</strong> open ☰ and choose Compare players, or press Compare in a player's window. Compare careers or a single season.</li>
             <li><strong>Favorites:</strong> tap ☆ next to a team to pin it to "My teams" at the top.</li>
             <li><strong>Colors:</strong> open ☰ Settings to pick a theme, including your favorite team's colors.</li>
             <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search and <kbd>Esc</kbd> to close a window.</li>
@@ -191,6 +241,6 @@
 </footer>
 
 <!-- Updated script version for cache busting -->
-<script src="script.js?v=9"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>
