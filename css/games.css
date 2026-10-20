@@ -1,0 +1,156 @@
+/* games.css — Today's games window. */
+
+/* Today's games */
+.games-modal {
+    width: min(1040px, 100%);
+}
+
+.date-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.date-nav #gamesNext {
+    margin-left: auto;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.game-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.game-card.is-live {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.game-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: .85rem;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+.game-status {
+    font-weight: 600;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex: none;
+}
+
+.game-series {
+    text-align: right;
+}
+
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: #D93025;
+    animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseDot { 50% { opacity: .35; } }
+
+.game-team {
+    display: grid;
+    grid-template-columns: 26px 1fr auto 2.2em;
+    align-items: center;
+    gap: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.game-team .game-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.game-team.winner {
+    font-weight: 600;
+}
+
+.game-rec {
+    color: var(--muted);
+    font-size: .85rem;
+}
+
+.game-score {
+    text-align: right;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.35rem;
+}
+
+.game-foot {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: .82rem;
+    color: var(--muted);
+}
+
+.game-venue {
+    margin: 0;
+    font-size: .78rem;
+    color: var(--muted);
+}
+
+.jump-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: -12px;
+}
+
+.games-table td {
+    text-align: left;
+}
+
+.games-table .opp-cell {
+    white-space: normal;
+}
+
+.games-table .opp-cell .mini-logo {
+    width: 20px;
+    height: 20px;
+    vertical-align: -5px;
+    margin: 0 4px;
+}
+
+.games-table .result-cell {
+    text-align: right;
+    font-weight: 500;
+}
+
+@media (max-width: 600px) {
+    .date-nav .ghost-btn {
+        padding: 6px 10px;
+        font-size: .875rem;
+    }
+
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+}

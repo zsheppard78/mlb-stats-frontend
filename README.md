@@ -46,17 +46,40 @@ Browser (this repo: HTML + CSS + vanilla JS)
 - **Readable team colors.** Team themes run through a WCAG contrast check (4.5:1) and are lightened or darkened until text is readable.
 - **Offline-friendly.** A service worker (`sw.js`) uses network-first caching, so you get fresh data when online and the last data you saw when offline.
 
-### Files
+### Project layout
 
-| File | What's in it |
+```
+index.html              the page and all of its windows
+js/app.js               starts everything (the only script the page loads)
+js/api.js               every request to the MLB API and the Render backend
+js/…                    one module per feature (see below)
+css/…                   one stylesheet per part of the page
+sw.js, manifest.webmanifest, icons/   install-as-an-app support
+tests/                  browser tests (Playwright)
+docs/                   README screenshots
+favorites.html          old link; forwards to "My teams" on the home page
+```
+
+The JavaScript uses native ES modules: each file imports exactly what it uses, so there are no hidden globals and no build step.
+
+| Module | What it does |
 |---|---|
-| `index.html` | Page structure and all windows (team, player, compare, games, leaders, find) |
-| `style.css` | "Ballpark" design: color tokens, light/dark themes, layout, responsive rules |
-| `script.js` | Standings, search, favorites, themes, team rosters, player window, season picker, compare |
-| `extras.js` | Today's games, league leaders, find a player, game logs, splits, charts, share links, refresh, install |
-| `favorites.html` / `favorites.js` | Standalone favorite-teams page |
-| `sw.js`, `manifest.webmanifest`, `icons/` | Install-as-an-app support |
-| `tests/` | Browser tests (Playwright) |
+| `app.js` | Sets up every feature in order, loads data, and handles shared links |
+| `api.js` | Config, the fetch helper, image URLs and every API request (one place to change data sources) |
+| `state.js` | Shared state: season, teams, standings and caches |
+| `util.js` | Small helpers: escaping, saved settings, toasts, dates |
+| `theme.js` | Color themes, team colors and the readability (contrast) check |
+| `standings.js` | Standings tables, My teams, season picker, Refresh |
+| `search.js` | Team search and opening/closing divisions |
+| `menu.js`, `modals.js` | The ☰ menu, and shared window behavior (Esc, focus, stacking) |
+| `team.js`, `team-postseason.js` | Team window: roster, Games tab, Postseason tab |
+| `player.js`, `career.js`, `find-player.js` | Player window (all tabs), career data, player search |
+| `compare.js`, `charts.js` | Compare players, and the line charts |
+| `games.js`, `leaders.js` | Today's games and League leaders |
+| `upcoming.js`, `world-series.js` | Home-page Upcoming games and World Series sections |
+| `share.js`, `pwa.js` | Copy-link buttons and install-as-an-app |
+
+Stylesheets load in this order: `base.css` (colors, fonts, light/dark tokens), `layout.css`, `home.css`, `windows.css`, then one file per window (`team`, `player`, `compare`, `games`, `leaders`, `find-player`) and `charts.css`.
 
 ## Running it locally
 

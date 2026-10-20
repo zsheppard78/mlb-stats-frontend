@@ -1,0 +1,102 @@
+/* charts.css — Line charts, legends and tooltips. */
+
+/* Charts */
+.chart-slot,
+.chart-area {
+    margin-top: 10px;
+}
+
+.chart-slot .chip-row {
+    margin-top: 18px;
+}
+
+.chart-wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.line-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    touch-action: pan-y;
+}
+
+.line-chart .grid {
+    stroke: var(--border);
+    stroke-width: 1;
+}
+
+.line-chart .axis {
+    fill: var(--muted);
+    font-size: 11px;
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+}
+
+.line-chart .end-label {
+    fill: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-body);
+}
+
+.line-chart .dot {
+    stroke: var(--modal-bg);
+    stroke-width: 2;
+}
+
+.line-chart .crosshair {
+    stroke: var(--muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+}
+
+.line-chart .hit {
+    cursor: crosshair;
+}
+
+.chart-tip {
+    position: absolute;
+    top: 6px;
+    transform: translateX(-50%);
+    background: var(--modal-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    box-shadow: var(--shadow-lift);
+    padding: 6px 10px;
+    font-size: .85rem;
+    pointer-events: none;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.chart-tip .tip-year {
+    color: var(--muted);
+    font-size: .78rem;
+    margin-bottom: 2px;
+}
+
+.chart-tip i,
+.chart-legend i,
+.series-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: 0;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 12px 0 2px;
+    font-size: .9rem;
+}
+
+.compare-chip .series-dot {
+    margin: 0 0 0 6px;
+}

@@ -1,0 +1,120 @@
+/* leaders.css — League leaders window. */
+
+/* Window stacking: lists < team < player < compare < help */
+#leadersModal {
+    z-index: 4900;
+}
+
+/* League leaders */
+.leaders-modal {
+    width: min(640px, 100%);
+}
+
+.leaders-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.leaders-controls .roster-tabs {
+    margin-bottom: 0;
+}
+
+.leaders-controls .chip-row {
+    flex-basis: 100%;
+}
+
+#leadersLeague,
+#leadersSeason {
+    padding: 7px 10px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.leader-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+}
+
+.leader-list li + li {
+    border-top: 1px solid var(--border);
+}
+
+.leader-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2em 40px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.leader-row:hover,
+.leader-row:focus-visible {
+    background: var(--surface-3);
+    outline: none;
+}
+
+.leader-rank {
+    color: var(--muted);
+    font-weight: 600;
+    text-align: right;
+}
+
+.leader-row img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-3);
+}
+
+.leader-name {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.leader-name small {
+    color: var(--muted);
+}
+
+.leader-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.leaders-empty {
+    padding: 28px 0;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .leader-row {
+        grid-template-columns: 1.6em 34px 1fr auto;
+        gap: 10px;
+        padding: 8px 10px;
+    }
+
+    .leader-row img {
+        width: 34px;
+        height: 34px;
+    }
+}

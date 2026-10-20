@@ -19,8 +19,18 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="manifest" href="manifest.webmanifest">
 
-    <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
-    <link rel="stylesheet" href="style.css?v=12" />
+    <!-- Styles, one file per part of the page (bump ?v= after changes so browsers don't keep an old copy) -->
+    <link rel="stylesheet" href="css/base.css?v=13" />
+    <link rel="stylesheet" href="css/layout.css?v=13" />
+    <link rel="stylesheet" href="css/home.css?v=13" />
+    <link rel="stylesheet" href="css/windows.css?v=13" />
+    <link rel="stylesheet" href="css/team.css?v=13" />
+    <link rel="stylesheet" href="css/player.css?v=13" />
+    <link rel="stylesheet" href="css/compare.css?v=13" />
+    <link rel="stylesheet" href="css/games.css?v=13" />
+    <link rel="stylesheet" href="css/leaders.css?v=13" />
+    <link rel="stylesheet" href="css/find-player.css?v=13" />
+    <link rel="stylesheet" href="css/charts.css?v=13" />
 </head>
 
 <body>
@@ -47,7 +57,7 @@
             <button class="menu-item help-link" id="leadersBtn"><span aria-hidden="true">🏆</span> League leaders</button>
             <button class="menu-item help-link" id="findPlayerBtn"><span aria-hidden="true">🔎</span> Find a player</button>
             <button class="menu-item help-link" id="compareBtn"><span aria-hidden="true">⚖️</span> Compare players</button>
-            <a class="menu-item help-link" href="favorites.html"><span aria-hidden="true">⭐</span> Favorite teams</a>
+            <button class="menu-item help-link" id="favoritesBtn"><span aria-hidden="true">⭐</span> My teams</button>
         </div>
 
         <h4 class="menu-section">Settings</h4>
@@ -355,8 +365,7 @@
     <button class="link-btn install-btn" id="installBtn" hidden>Install as an app</button>
 </footer>
 
-<!-- Updated script version for cache busting -->
-<script src="script.js?v=12"></script>
-<script src="extras.js?v=4"></script>
+<!-- One entry point; js/app.js imports everything else -->
+<script type="module" src="js/app.js?v=13"></script>
 </body>
 </html>

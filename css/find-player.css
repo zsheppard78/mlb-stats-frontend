@@ -1,0 +1,60 @@
+/* find-player.css — Find a player window. */
+
+/* Find a player */
+.find-modal {
+    width: min(600px, 100%);
+}
+
+.find-results {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+}
+
+.find-results button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.find-results button:hover,
+.find-results button:focus-visible {
+    background: var(--surface-3);
+    outline: none;
+}
+
+.find-results img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-3);
+    flex: none;
+}
+
+.find-results span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.find-results small {
+    color: var(--muted);
+}
+
+.find-results .result-note {
+    padding: 8px 10px;
+}
+
+.is-loading {
+    cursor: progress !important;
+    opacity: .6;
+}

@@ -1,0 +1,278 @@
+/* team.css — Team window: roster stats table, Games tab and Postseason tab. */
+
+.table-hint {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .95rem;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-table th,
+.stats-table td {
+    padding: 8px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+}
+
+.stats-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-table th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-3);
+    padding: 0;
+}
+
+.stats-table th button {
+    width: 100%;
+    padding: 9px 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 600;
+    text-align: right;
+    cursor: pointer;
+}
+
+.stats-table th button:hover {
+    color: var(--text);
+}
+
+.stats-table th[aria-sort="ascending"] button,
+.stats-table th[aria-sort="descending"] button {
+    color: var(--accent);
+}
+
+.stats-table .name-col {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: var(--modal-bg);
+    z-index: 1;
+}
+
+.stats-table th.name-col {
+    background: var(--surface-3);
+    z-index: 2;
+}
+
+.stats-table th.name-col button {
+    text-align: left;
+}
+
+.name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-row {
+    cursor: pointer;
+}
+
+.player-row:hover td,
+.player-row:focus-visible td {
+    background: var(--surface-3);
+}
+
+.player-row:focus-visible {
+    outline: none;
+}
+
+.player-row:focus-visible td:first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.player-headshot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-3);
+    flex: none;
+}
+
+.player-name-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.player-name-wrap strong {
+    font-weight: 600;
+}
+
+.player-name-wrap small {
+    color: var(--muted);
+}
+
+/* Year-by-year table */
+.stats-table th .th-text {
+    display: block;
+    padding: 9px 12px;
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.stats-table th.name-col .th-text {
+    text-align: left;
+}
+
+/* Team window */
+.team-view-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.team-view-row .roster-tabs {
+    margin-bottom: 0;
+}
+
+.result {
+    display: inline-block;
+    width: 1.4em;
+    font-weight: 700;
+}
+
+.result.win {
+    color: var(--accent);
+}
+
+.result.loss {
+    color: var(--muted);
+}
+
+.post-tag {
+    color: var(--muted);
+    margin-left: 4px;
+}
+
+.ps-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px 28px;
+    margin: 6px 0 14px;
+}
+
+.ps-stat {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.ps-stat strong {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.ps-stat span {
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.ps-since {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.ps-table td {
+    vertical-align: top;
+    text-align: left;
+    white-space: normal;
+}
+
+.ps-table .ps-year {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.ps-result {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ps-result.champ {
+    color: #9A7300;
+}
+
+.ps-result.live {
+    color: var(--accent);
+}
+
+.ps-detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    color: var(--muted);
+}
+
+.ps-series b {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+.ps-empty {
+    padding: 28px 0;
+    text-align: center;
+}
+
+.ps-table th .th-text {
+    text-align: left;
+}
+
+.ps-detail-inline {
+    display: none;
+    margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+    .ps-stat strong {
+        font-size: 1.6rem;
+    }
+
+    .ps-table th:nth-child(3),
+    .ps-table td:nth-child(3) {
+        min-width: 210px;
+    }
+
+    .ps-table .ps-detail-col {
+        display: none;
+    }
+
+    .ps-detail-inline {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: .875rem;
+    }
+
+    .ps-table td {
+        white-space: normal;
+    }
+}

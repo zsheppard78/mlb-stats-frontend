@@ -1,0 +1,605 @@
+/* home.css — Home page: My teams, Upcoming games, World Series, and the division standings tables. */
+
+.leagues {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    align-items: start;
+}
+
+.favorites-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+}
+
+.favorites-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.favorites-row:empty {
+    display: none;
+}
+
+.team-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px 8px 10px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.team-card:hover,
+.team-card:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.team-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    flex: none;
+}
+
+.team-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+}
+
+.team-name {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.team-record {
+    font-size: .85rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.favorite-star {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    color: color-mix(in srgb, var(--muted) 70%, transparent);
+    transition: color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.favorite-star:hover {
+    color: var(--accent);
+    background: var(--surface-3);
+}
+
+.favorite-star.active {
+    color: #D4A017;
+}
+
+/* gold star reads as "saved" on any theme */
+.favorite-star:active {
+    transform: scale(.88);
+}
+
+.league h2 {
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--text);
+}
+
+details {
+    margin-bottom: 18px;
+}
+
+summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 8px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--highlight);
+    user-select: none;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-left: 2px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(-45deg);
+    transition: transform .2s ease;
+}
+
+details[open] > summary::after {
+    transform: rotate(45deg) translate(-2px, -2px);
+}
+
+summary:hover {
+    color: var(--accent);
+}
+
+.standings:empty {
+    display: none;
+}
+
+.standings table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+}
+
+.standings th,
+.standings td {
+    padding: 9px 8px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.standings th {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    cursor: help;
+}
+
+.standings td {
+    border-bottom: 1px solid var(--border);
+    font-size: .95rem;
+}
+
+.standings tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.standings th.team-col,
+.standings td.team-cell {
+    text-align: left;
+    padding-left: 14px;
+    width: 100%;
+}
+
+.standings .star-cell {
+    width: 40px;
+    padding: 0 6px 0 2px;
+    text-align: center;
+}
+
+.standings-row {
+    cursor: pointer;
+    transition: background-color .12s ease;
+}
+
+.standings-row:hover td,
+.standings-row:focus-visible td {
+    background: var(--surface-3);
+}
+
+.standings-row:focus-visible {
+    outline: none;
+}
+
+.standings-row:focus-visible td:first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Division leader gets a little more weight */
+.standings tbody tr:first-child .full-name,
+.standings tbody tr:first-child .short-name {
+    font-weight: 600;
+}
+
+.standings-row.fav-row td:first-child {
+    box-shadow: inset 3px 0 0 #D4A017;
+}
+
+.team-cell-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mini-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex: none;
+}
+
+.short-name {
+    display: none;
+}
+
+.clinch {
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-radius: 4px;
+    padding: 3px 5px;
+    cursor: help;
+}
+
+.clinch-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 16px;
+    margin: -8px 0 0;
+    font-size: .8rem;
+    color: var(--muted);
+}
+
+.clinch-legend b {
+    color: var(--accent);
+}
+
+:root[data-mode="dark"] .team-logo {
+    filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, .55));
+}
+
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.upcoming-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+}
+
+.upcoming-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 270px);
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+}
+
+.up-card {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color .15s ease;
+}
+
+.up-card:hover,
+.up-card:focus-visible {
+    border-color: var(--accent);
+}
+
+.up-card.is-fav {
+    border-left: 3px solid #D4A017;
+}
+
+.up-when {
+    font-size: .85rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.up-when strong {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+.up-star {
+    color: #D4A017;
+    margin-left: 6px;
+}
+
+.up-series {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.up-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.up-team small {
+    margin-left: auto;
+    color: var(--muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+.up-at {
+    font-size: .75rem;
+    color: var(--muted);
+    margin: -3px 0 -3px 30px;
+}
+
+.up-pitchers {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: .8rem;
+    color: var(--muted);
+}
+
+.up-more {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.ws-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+}
+
+.ws-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.ws-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+    min-height: 120px;
+}
+
+/* The champion gets a gold edge, like a banner */
+.ws-card.is-champion {
+    border-top: 4px solid #D4A017;
+}
+
+.ws-logo {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+    flex: none;
+}
+
+.ws-logo.small {
+    width: 48px;
+    height: 48px;
+}
+
+.ws-matchup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+}
+
+.ws-vs,
+.ws-and {
+    color: var(--muted);
+    font-size: .9rem;
+    font-weight: 500;
+}
+
+.ws-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+}
+
+.ws-text p {
+    margin: 0;
+}
+
+.ws-label {
+    color: var(--muted);
+    font-size: .9rem;
+    font-weight: 500;
+}
+
+.ws-team {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1.1;
+}
+
+.ws-detail {
+    color: var(--text);
+}
+
+.ws-detail .team-link {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.ws-text .ghost-btn {
+    margin-top: 6px;
+}
+
+.ws-empty {
+    color: var(--muted);
+    margin: 4px 0 0;
+}
+
+.ws-history {
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow);
+}
+
+.ws-history h3 {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.ws-history-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+}
+
+.ws-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font: inherit;
+    font-size: .9rem;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+
+.ws-chip:hover {
+    border-color: var(--accent);
+}
+
+.ws-chip.active {
+    border-color: #D4A017;
+    background: color-mix(in srgb, #D4A017 12%, transparent);
+}
+
+.ws-chip-year {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.ws-chip-team {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 960px) {
+    .leagues {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .favorites-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .team-name {
+        font-size: .95rem;
+    }
+
+    .standings th,
+    .standings td {
+        padding: 9px 6px;
+    }
+
+    .standings th.team-col,
+    .standings td.team-cell {
+        padding-left: 10px;
+    }
+
+    .hide-sm {
+        display: none;
+    }
+
+    .full-name {
+        display: none;
+    }
+
+    .short-name {
+        display: inline;
+    }
+
+    .upcoming-strip {
+        grid-auto-columns: 78%;
+    }
+
+    .ws-card {
+        padding: 14px;
+        gap: 12px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .ws-logo {
+        width: 56px;
+        height: 56px;
+    }
+
+    .ws-team {
+        font-size: 1.5rem;
+    }
+
+    .ws-history-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 800px) {
+    .ws-layout {
+        grid-template-columns: 1fr;
+    }
+}

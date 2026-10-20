@@ -191,8 +191,10 @@ const roster = { roster: [
     });
     await page.addInitScript(() => localStorage.setItem('favorites', '[158,112]'));
     await page.goto('http://app.test/favorites.html');
-    await page.waitForSelector('#favoriteTeams .team-card');
-    results.favPageCards = await page.$$eval('#favoriteTeams .team-card', e => e.length);
+    // favorites.html now forwards to "My teams" on the home page
+    await page.waitForURL(/index\.html#favorites-section$/);
+    await page.waitForSelector('#favoritesGrid .team-card');
+    results.favPageCards = await page.$$eval('#favoritesGrid .team-card', e => e.length);
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${OUT}/favpage.png` });
     await ctx.close();
@@ -235,7 +237,7 @@ const roster = { roster: [
   assert.equal(results.migratedTheme, 'team', 'old saved team theme still applies');
   assert.equal(results.deepLinkTeam, 'Milwaukee Brewers', '?team= opens that team');
   assert.equal(results.migratedUI, 'graysoft');
-  assert.equal(results.favPageCards, 2, 'favorites page lists starred teams');
+  assert.equal(results.favPageCards, 2, 'old favorites page link lands on My teams with starred teams');
   assert.equal(results.mobileOverflow, 0, 'no sideways scrolling on phones');
   await browser.close();
   console.log(JSON.stringify(results, null, 1));
