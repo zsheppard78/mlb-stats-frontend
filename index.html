@@ -4,120 +4,191 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Baseball Teams Explorer</title>
+    <meta name="description" content="Browse MLB standings, team rosters and player stats." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<header>
-    <div class="menu-icon" id="menuBtn">☰</div>
-    <h1>⚾ Baseball Teams Explorer</h1>
-
-    <nav id="sideMenu" class="side-menu">
-        <div class="menu-top">
-            <h3>⚙️ Settings</h3>
-            <hr>
-
-            <div class="menu-item">
-                <label for="theme">Theme:</label>
-                <select id="theme">
-                    <option value="classic">Classic (Gold)</option>
-                    <option value="dodger">Dodger Blue</option>
-                    <option value="cardinal">Cardinal Red</option>
-                    <option value="green">Oakland Green</option>
-                    <option value="night">Night Mode</option>
-                </select>
-            </div>
-
-            <div class="menu-item">
-                <button id="resetThemeBtn" class="reset-btn">Reset Theme</button>
-            </div>
-        </div>
-
-        <div class="menu-item help-link" id="helpBtn">
-            ❓ Help & Info
-        </div>
-    </nav>
+<header class="site-header">
+    <button class="menu-icon" id="menuBtn" aria-label="Open settings" aria-expanded="false" aria-controls="sideMenu">☰</button>
+    <div class="title-wrap">
+        <h1>⚾ Baseball Teams Explorer</h1>
+        <p class="subtitle" id="seasonLabel">MLB standings, rosters &amp; player stats</p>
+    </div>
+    <button class="icon-btn help-btn-header" id="helpBtnHeader" aria-label="Help">?</button>
 </header>
+
+<!-- SETTINGS SIDE MENU -->
+<nav id="sideMenu" class="side-menu" aria-label="Settings" aria-hidden="true">
+    <div class="menu-top">
+        <div class="menu-head">
+            <h3>⚙️ Settings</h3>
+            <button class="icon-btn" id="closeMenuBtn" aria-label="Close settings">&times;</button>
+        </div>
+        <hr>
+
+        <div class="menu-item">
+            <label for="theme">Color theme</label>
+            <select id="theme">
+                <option value="classic">Classic (Gold)</option>
+                <option value="dodger">Dodger Blue</option>
+                <option value="cardinal">Cardinal Red</option>
+                <option value="green">Oakland Green</option>
+                <option value="night">Night Mode</option>
+                <option value="team">My favorite team's colors</option>
+            </select>
+            <p class="menu-hint" id="themeHint"></p>
+        </div>
+
+        <div class="menu-item">
+            <button id="resetThemeBtn" class="reset-btn">Reset to default theme</button>
+        </div>
+    </div>
+
+    <button class="menu-item help-link" id="helpBtn">❓ Help &amp; Info</button>
+</nav>
+<div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
 <main>
 
-    <!-- ✅ TEAM ROSTER MODAL -->
-    <div id="rosterModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal">&times;</span>
-            <h2 id="teamNameModal"></h2>
-
-            <div class="roster-tabs">
-                <button class="tab-btn active" data-tab="batters">Batters</button>
-                <button class="tab-btn" data-tab="pitchers">Pitchers/DH</button>
-                <button class="tab-btn" data-tab="catchers">Catchers</button>
-            </div>
-
-            <div id="batters" class="tab-content active"></div>
-            <div id="pitchers" class="tab-content"></div>
-            <div id="catchers" class="tab-content"></div>
+    <!-- SEARCH + CONTROLS -->
+    <div class="toolbar">
+        <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="teamSearch" placeholder="Find a team (e.g. Cubs, NYY, Seattle)…" aria-label="Search teams" autocomplete="off">
         </div>
+        <button class="ghost-btn" id="toggleAllBtn">Collapse all</button>
     </div>
 
-    <!-- ✅ PLAYER BIO MODAL -->
-    <div id="playerModal" class="modal">
-        <div class="modal-content player-modal">
-            <span id="closePlayerModal">&times;</span>
-            <img id="playerHeadshot" class="player-modal-img" alt="Player" src="">
-            <h2 id="playerName"></h2>
-            <p id="playerTeam"></p>
-            <p id="playerInfo"></p>
-        </div>
-    </div>
+    <!-- LOADING / ERROR STATUS -->
+    <div id="statusBanner" class="status-banner" role="status" aria-live="polite" hidden></div>
 
-    <!-- ✅ AMERICAN LEAGUE -->
-    <section id="american-league">
+    <!-- FAVORITES -->
+    <section id="favorites-section" class="favorites-section">
+        <h2>⭐ My Teams</h2>
+        <div id="favoritesGrid" class="teams-grid"></div>
+        <p id="favoritesEmpty" class="empty-hint">Tap the ☆ on any team to pin it here for quick access.</p>
+    </section>
+
+    <p id="noResults" class="empty-hint no-results" hidden>No teams match your search.</p>
+
+    <!-- AMERICAN LEAGUE -->
+    <section id="american-league" class="league">
         <h2>American League</h2>
 
-        <details>
+        <details open data-division="AL-East">
             <summary>East Division</summary>
-            <div id="AL-East-standings" class="standings"></div>
-            <div id="AL-East" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="AL-East-standings" class="standings"></div>
+                <div id="AL-East" class="teams-grid"></div>
+            </div>
         </details>
 
-        <details>
+        <details open data-division="AL-Central">
             <summary>Central Division</summary>
-            <div id="AL-Central-standings" class="standings"></div>
-            <div id="AL-Central" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="AL-Central-standings" class="standings"></div>
+                <div id="AL-Central" class="teams-grid"></div>
+            </div>
         </details>
 
-        <details>
+        <details open data-division="AL-West">
             <summary>West Division</summary>
-            <div id="AL-West-standings" class="standings"></div>
-            <div id="AL-West" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="AL-West-standings" class="standings"></div>
+                <div id="AL-West" class="teams-grid"></div>
+            </div>
         </details>
     </section>
 
-    <!-- ✅ NATIONAL LEAGUE -->
-    <section id="national-league">
+    <!-- NATIONAL LEAGUE -->
+    <section id="national-league" class="league">
         <h2>National League</h2>
 
-        <details>
+        <details open data-division="NL-East">
             <summary>East Division</summary>
-            <div id="NL-East-standings" class="standings"></div>
-            <div id="NL-East" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="NL-East-standings" class="standings"></div>
+                <div id="NL-East" class="teams-grid"></div>
+            </div>
         </details>
 
-        <details>
+        <details open data-division="NL-Central">
             <summary>Central Division</summary>
-            <div id="NL-Central-standings" class="standings"></div>
-            <div id="NL-Central" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="NL-Central-standings" class="standings"></div>
+                <div id="NL-Central" class="teams-grid"></div>
+            </div>
         </details>
 
-        <details>
+        <details open data-division="NL-West">
             <summary>West Division</summary>
-            <div id="NL-West-standings" class="standings"></div>
-            <div id="NL-West" class="teams-grid"></div>
+            <div class="division-body">
+                <div id="NL-West-standings" class="standings"></div>
+                <div id="NL-West" class="teams-grid"></div>
+            </div>
         </details>
     </section>
 
 </main>
+
+<!-- TEAM ROSTER MODAL -->
+<div id="rosterModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="teamNameModal" hidden>
+    <div class="modal-content">
+        <div class="modal-head">
+            <img id="teamLogoModal" class="modal-team-logo" alt="" src="">
+            <div>
+                <h2 id="teamNameModal"></h2>
+                <p class="modal-sub" id="rosterSub"></p>
+            </div>
+            <button class="close-btn" id="closeModal" aria-label="Close roster">&times;</button>
+        </div>
+
+        <div class="roster-tabs" id="rosterTabs" role="tablist"></div>
+        <div id="rosterBody"></div>
+    </div>
+</div>
+
+<!-- PLAYER BIO MODAL -->
+<div id="playerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="playerName" hidden>
+    <div class="modal-content player-modal">
+        <div class="player-modal-top">
+            <button class="ghost-btn" id="backToRoster">← Back to roster</button>
+            <button class="close-btn" id="closePlayerModal" aria-label="Close player">&times;</button>
+        </div>
+        <img id="playerHeadshot" class="player-modal-img" alt="" src="">
+        <h2 id="playerName"></h2>
+        <p id="playerTeam" class="player-team"></p>
+        <div id="playerInfo" class="bio-grid"></div>
+        <div id="playerStats"></div>
+    </div>
+</div>
+
+<!-- HELP MODAL -->
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+    <div class="modal-content help-modal">
+        <div class="modal-head">
+            <h2 id="helpTitle">How to use Baseball Teams Explorer</h2>
+            <button class="close-btn" id="closeHelp" aria-label="Close help">&times;</button>
+        </div>
+        <ul class="help-list">
+            <li><strong>Find a team:</strong> type in the search box, or scroll through the divisions.</li>
+            <li><strong>See a roster:</strong> click any team card or standings row. Stats are for the current season.</li>
+            <li><strong>Sort stats:</strong> click a column header in the roster (e.g. HR or ERA).</li>
+            <li><strong>Player details:</strong> click a player for their bio and season line.</li>
+            <li><strong>Favorites:</strong> tap ☆ to pin a team to "My Teams" at the top.</li>
+            <li><strong>Colors:</strong> open ☰ Settings to pick a theme, including your favorite team's colors.</li>
+            <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search and <kbd>Esc</kbd> to close a window.</li>
+        </ul>
+        <p class="modal-sub">Data from the MLB Stats API.</p>
+    </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="script.js"></script>
 </body>
