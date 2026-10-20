@@ -20,17 +20,18 @@
     <link rel="manifest" href="manifest.webmanifest">
 
     <!-- Styles, one file per part of the page (bump ?v= after changes so browsers don't keep an old copy) -->
-    <link rel="stylesheet" href="css/base.css?v=13" />
-    <link rel="stylesheet" href="css/layout.css?v=13" />
-    <link rel="stylesheet" href="css/home.css?v=13" />
-    <link rel="stylesheet" href="css/windows.css?v=13" />
-    <link rel="stylesheet" href="css/team.css?v=13" />
-    <link rel="stylesheet" href="css/player.css?v=13" />
-    <link rel="stylesheet" href="css/compare.css?v=13" />
-    <link rel="stylesheet" href="css/games.css?v=13" />
-    <link rel="stylesheet" href="css/leaders.css?v=13" />
-    <link rel="stylesheet" href="css/find-player.css?v=13" />
-    <link rel="stylesheet" href="css/charts.css?v=13" />
+    <link rel="stylesheet" href="css/base.css?v=14" />
+    <link rel="stylesheet" href="css/layout.css?v=14" />
+    <link rel="stylesheet" href="css/home.css?v=14" />
+    <link rel="stylesheet" href="css/windows.css?v=14" />
+    <link rel="stylesheet" href="css/team.css?v=14" />
+    <link rel="stylesheet" href="css/player.css?v=14" />
+    <link rel="stylesheet" href="css/compare.css?v=14" />
+    <link rel="stylesheet" href="css/games.css?v=14" />
+    <link rel="stylesheet" href="css/leaders.css?v=14" />
+    <link rel="stylesheet" href="css/find-player.css?v=14" />
+    <link rel="stylesheet" href="css/charts.css?v=14" />
+    <link rel="stylesheet" href="css/account.css?v=14" />
 </head>
 
 <body>
@@ -41,6 +42,10 @@
         <h1>MLB Stats Explorer</h1>
         <p class="season-tile" aria-label="Season"><span id="seasonLabel"></span></p>
     </div>
+    <button class="account-btn" id="accountBtn" aria-haspopup="dialog" aria-label="Sign in">
+        <span class="account-avatar" id="accountAvatar" aria-hidden="true">👤</span>
+        <span class="account-label" id="accountLabel">Sign in</span>
+    </button>
     <button class="icon-btn help-btn-header" id="helpBtnHeader" aria-label="Help">?</button>
 </header>
 
@@ -58,6 +63,7 @@
             <button class="menu-item help-link" id="findPlayerBtn"><span aria-hidden="true">🔎</span> Find a player</button>
             <button class="menu-item help-link" id="compareBtn"><span aria-hidden="true">⚖️</span> Compare players</button>
             <button class="menu-item help-link" id="favoritesBtn"><span aria-hidden="true">⭐</span> My teams</button>
+            <button class="menu-item help-link" id="accountMenuBtn"><span aria-hidden="true">👤</span> <span id="accountMenuLabel">Sign in</span></button>
         </div>
 
         <h4 class="menu-section">Settings</h4>
@@ -351,10 +357,58 @@
             <li><strong>From the ☰ menu:</strong> Today's games, League leaders, Find a player and Compare players.</li>
             <li><strong>Share:</strong> use Copy link in a team, player or comparison window to send exactly what you're looking at.</li>
             <li><strong>Favorites:</strong> tap ☆ next to a team to pin it to "My teams" at the top.</li>
+            <li><strong>Account:</strong> sign in (top right) with a username or Google to save your favorite teams and see them on any device.</li>
             <li><strong>Colors:</strong> open ☰ and pick a theme, including your favorite team's colors.</li>
             <li><strong>Keyboard:</strong> press <kbd>/</kbd> to search teams and <kbd>Esc</kbd> to close a window.</li>
         </ul>
         <p class="modal-sub">Data from the MLB Stats API.</p>
+    </div>
+</div>
+
+<div id="accountModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle" hidden>
+    <div class="modal-content account-modal">
+        <div class="modal-head">
+            <h2 id="accountTitle">Sign in</h2>
+            <button class="close-btn" id="closeAccount" aria-label="Close">&times;</button>
+        </div>
+
+        <div id="accountSignedOut">
+            <p class="account-intro">Save your favorite teams and see them on any device.</p>
+
+            <div class="google-area" id="googleArea" hidden>
+                <div class="google-btn" id="googleBtn"></div>
+                <p class="account-or"><span>or use a username</span></p>
+            </div>
+
+            <div class="roster-tabs account-tabs" role="tablist" aria-label="Sign in or create an account">
+                <button class="tab-btn active" id="tabLogin" role="tab" aria-selected="true" aria-controls="accountForm">Sign in</button>
+                <button class="tab-btn" id="tabRegister" role="tab" aria-selected="false" aria-controls="accountForm">Create account</button>
+            </div>
+
+            <form class="account-form" id="accountForm" novalidate>
+                <label for="acctUsername">Username</label>
+                <input id="acctUsername" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20" aria-describedby="usernameHint">
+                <p class="field-hint" id="usernameHint" hidden>3–20 letters, numbers or underscores.</p>
+
+                <label for="acctPassword">Password</label>
+                <div class="password-row">
+                    <input id="acctPassword" name="password" type="password" autocomplete="current-password" maxlength="72" aria-describedby="passwordHint">
+                    <button type="button" class="link-btn" id="showPassword" aria-pressed="false" aria-label="Show password">Show</button>
+                </div>
+                <p class="field-hint" id="passwordHint" hidden>At least 8 characters.</p>
+
+                <p class="form-error" id="accountError" role="alert" hidden></p>
+                <button type="submit" class="primary-btn" id="accountSubmit">Sign in</button>
+                <p class="account-wait" id="accountWait" role="status" hidden><span class="spinner" aria-hidden="true"></span> Waking up the server… this can take up to a minute the first time.</p>
+            </form>
+        </div>
+
+        <div id="accountSignedIn" hidden>
+            <p class="account-who">Signed in as <strong id="accountName"></strong></p>
+            <p class="modal-sub" id="accountMethod"></p>
+            <p id="accountSummary"></p>
+            <button class="ghost-btn" id="signOutBtn">Sign out</button>
+        </div>
     </div>
 </div>
 
@@ -366,6 +420,6 @@
 </footer>
 
 <!-- One entry point; js/app.js imports everything else -->
-<script type="module" src="js/app.js?v=13"></script>
+<script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>

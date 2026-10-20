@@ -18,6 +18,7 @@ A fast, mobile-friendly web app for following Major League Baseball: standings, 
 - **Find a player:** search every MLB player, past or present.
 - **Compare players:** up to four players by career or a single season, as a table (best value highlighted) or a year-by-year chart.
 - **Shareable links:** every team, player and comparison has a Copy link button (for example `?player=592450&season=2024`).
+- **Accounts:** sign in with a username and password or with Google, and your favorite teams are saved to your account and follow you to any device.
 - **Favorites and themes:** star teams to pin them to the top. Pick a theme, including your favorite team's colors, which are automatically adjusted to stay readable.
 - **Installable:** works as an app on your phone or desktop, and shows the last data you loaded when you're offline.
 - **Accessible:** keyboard navigation (`/` to search, `Esc` to close), screen-reader labels, readable contrast in every theme, and it respects reduced-motion settings.
@@ -35,6 +36,8 @@ Browser (this repo: HTML + CSS + vanilla JS)
    │
    ├── Team list ───────────► Java backend on Render  (/api/teams)
    │                             └─ falls back to the MLB API if the backend is asleep
+   ├── Sign-in, favorites ──► Java backend  (/api/auth/*, /api/me, /api/favorites)
+   │                             └─ stored in Postgres on Neon
    │
    └── Everything else ─────► MLB Stats API (statsapi.mlb.com)
                                  standings · rosters · schedule · leaders · people · stats
@@ -78,8 +81,9 @@ The JavaScript uses native ES modules: each file imports exactly what it uses, s
 | `games.js`, `leaders.js` | Today's games and League leaders |
 | `upcoming.js`, `world-series.js` | Home-page Upcoming games and World Series sections |
 | `share.js`, `pwa.js` | Copy-link buttons and install-as-an-app |
+| `account.js` | Sign in (username or Google), and saving favorite teams to the account |
 
-Stylesheets load in this order: `base.css` (colors, fonts, light/dark tokens), `layout.css`, `home.css`, `windows.css`, then one file per window (`team`, `player`, `compare`, `games`, `leaders`, `find-player`) and `charts.css`.
+Stylesheets load in this order: `base.css` (colors, fonts, light/dark tokens), `layout.css`, `home.css`, `windows.css`, then one file per window (`team`, `player`, `compare`, `games`, `leaders`, `find-player`), `charts.css` and `account.css`.
 
 ## Running it locally
 

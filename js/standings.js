@@ -235,11 +235,7 @@ function toggleFavorite(teamId) {
     if (wasFav) {
         state.favorites = state.favorites.filter(id => id !== team.id);
         // If this team was the color theme, switch to another favorite (or none)
-        if (localStorage.getItem("favoriteTeamTheme") === team.name) {
-            const next = teamById(state.favorites[state.favorites.length - 1]);
-            if (next) localStorage.setItem("favoriteTeamTheme", next.name);
-            else localStorage.removeItem("favoriteTeamTheme");
-        }
+        if (localStorage.getItem("favoriteTeamTheme") === team.name) pickThemeTeam();
         showToast(`Removed ${team.name} from My Teams`);
     } else {
         state.favorites.push(team.id);
@@ -251,8 +247,23 @@ function toggleFavorite(teamId) {
     writeJSON("favorites", state.favorites);
     if (getThemeChoice() === "team") applyThemeChoice("team");
 
-    // Update every star + standings row for this team
-    const isFav = !wasFav;
+    updateFavoriteMarks(team);
+    renderFavorites();
+    applySearch(document.getElementById("teamSearch").value);
+    // account.js saves the change when signed in
+    document.dispatchEvent(new CustomEvent("mlb:favorite-toggled", { detail: { teamId: team.id, isFav: !wasFav } }));
+}
+
+// "My favorite team's colors" follows the most recently added favorite
+function pickThemeTeam() {
+    const next = teamById(state.favorites[state.favorites.length - 1]);
+    if (next) localStorage.setItem("favoriteTeamTheme", next.name);
+    else localStorage.removeItem("favoriteTeamTheme");
+}
+
+// Every star and standings row for this team
+function updateFavoriteMarks(team) {
+    const isFav = state.favorites.includes(team.id);
     document.querySelectorAll(`.favorite-star[data-team-id="${team.id}"]`).forEach(star => {
         star.classList.toggle("active", isFav);
         star.textContent = isFav ? "★" : "☆";
@@ -261,6 +272,23 @@ function toggleFavorite(teamId) {
         star.setAttribute("aria-label", `${isFav ? "Remove" : "Add"} ${team.name} ${isFav ? "from" : "to"} My Teams`);
     });
     document.querySelectorAll(`.standings-row[data-team-id="${team.id}"]`).forEach(r => r.classList.toggle("fav-row", isFav));
+}
+
+/** Replaces the whole favorites list (used when signing in or out). */
+export function setFavorites(ids) {
+    const before = state.favorites;
+    state.favorites = [...new Set(ids.map(Number))];
+    writeJSON("favorites", state.favorites);
+    if (!state.teams.length) return; // the page draws them once teams load
+
+    const themeTeam = localStorage.getItem("favoriteTeamTheme");
+    if (!state.favorites.some(id => teamById(id)?.name === themeTeam)) pickThemeTeam();
+    if (getThemeChoice() === "team") applyThemeChoice("team");
+
+    new Set([...before, ...state.favorites]).forEach(id => {
+        const team = teamById(id);
+        if (team) updateFavoriteMarks(team);
+    });
     renderFavorites();
     applySearch(document.getElementById("teamSearch").value);
 }

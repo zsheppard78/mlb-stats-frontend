@@ -1,0 +1,207 @@
+/* account.css — The Sign in button in the header and the account window. */
+
+/* Header button: "👤 Sign in", or the first letter + name when signed in */
+.account-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 220px;
+    height: 36px;
+    padding: 0 12px 0 4px;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .45);
+    border-radius: 999px;
+    color: var(--on-accent);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.account-btn:hover {
+    background: rgba(255, 255, 255, .22);
+}
+
+.account-avatar {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: .95rem;
+    line-height: 1;
+}
+
+.account-btn.signed-in .account-avatar {
+    background: var(--on-accent);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.account-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The window */
+.account-modal {
+    width: min(440px, 100%);
+}
+
+.account-intro {
+    margin: -6px 0 18px;
+    color: var(--muted);
+}
+
+.google-area {
+    margin-bottom: 18px;
+}
+
+.google-btn {
+    display: flex;
+    justify-content: center;
+    min-height: 44px;
+}
+
+.account-or {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.account-or::before,
+.account-or::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--border);
+}
+
+.account-tabs {
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.account-tabs .tab-btn {
+    flex: 1;
+}
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-form label {
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.account-form input {
+    width: 100%;
+    padding: 11px 12px;
+    margin-bottom: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+}
+
+.account-form input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+}
+
+.account-form input:disabled {
+    opacity: .6;
+}
+
+.password-row {
+    position: relative;
+}
+
+.password-row input {
+    padding-right: 64px;
+}
+
+.password-row .link-btn {
+    position: absolute;
+    top: 11px;
+    right: 12px;
+    font-size: .875rem;
+}
+
+.field-hint {
+    margin: -8px 0 14px;
+    color: var(--muted);
+    font-size: .875rem;
+}
+
+.form-error {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    background: rgba(200, 40, 40, .1);
+    border-left: 3px solid #c62828;
+    border-radius: var(--r-sm);
+    color: var(--text);
+}
+
+.primary-btn {
+    padding: 12px 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--r-md);
+    color: var(--on-accent);
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.primary-btn:hover {
+    filter: brightness(1.08);
+}
+
+.primary-btn:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.account-wait {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.account-who {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+#accountSummary {
+    margin: 16px 0 20px;
+}
+
+/* Phones: the header only has room for the avatar */
+@media (max-width: 600px) {
+    .account-btn {
+        width: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .account-label {
+        display: none;
+    }
+}

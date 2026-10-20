@@ -119,3 +119,50 @@ export async function getWorldSeriesGames(season) {
 export async function getWorldSeriesMVP(season) {
     return fetchJSON(`${MLB_API}/awards/WSMVP/recipients?season=${season}`);
 }
+
+// ------------------------------------------------------------------ accounts (Java backend + Neon)
+
+// Calls the backend with JSON. Errors carry the backend's message (e.g. "That username is taken.")
+// and the HTTP status (0 when the server couldn't be reached).
+async function backendRequest(path, { method = "GET", body, token, timeoutMs = 70000 } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const headers = {};
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (token) headers.Authorization = `Bearer ${token}`;
+    let res;
+    try {
+        res = await fetch(`${BACKEND}${path}`, {
+            method, headers, cache: "no-store", signal: controller.signal,
+            body: body === undefined ? undefined : JSON.stringify(body)
+        });
+    } catch {
+        const err = new Error("Couldn't reach the server. Check your connection and try again.");
+        err.status = 0;
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
+    let data = null;
+    try { data = await res.json(); } catch { /* empty or non-JSON body */ }
+    if (!res.ok) {
+        const err = new Error(data?.error || `Something went wrong (error ${res.status}). Try again.`);
+        err.status = res.status;
+        throw err;
+    }
+    return data;
+}
+
+export const getAuthConfig = () => backendRequest("/api/auth/config");
+export const registerAccount = (username, password) =>
+    backendRequest("/api/auth/register", { method: "POST", body: { username, password } });
+export const signInWithPassword = (username, password) =>
+    backendRequest("/api/auth/login", { method: "POST", body: { username, password } });
+export const signInWithGoogle = credential =>
+    backendRequest("/api/auth/google", { method: "POST", body: { credential } });
+export const signOutSession = token => backendRequest("/api/auth/logout", { method: "POST", token, timeoutMs: 15000 });
+export const getMe = token => backendRequest("/api/me", { token });
+export const saveFavoriteList = (token, teamIds) =>
+    backendRequest("/api/favorites", { method: "PUT", body: { teamIds }, token });
+export const addFavoriteTeam = (token, teamId) => backendRequest(`/api/favorites/${teamId}`, { method: "PUT", token });
+export const removeFavoriteTeam = (token, teamId) => backendRequest(`/api/favorites/${teamId}`, { method: "DELETE", token });

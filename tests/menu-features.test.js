@@ -433,7 +433,7 @@ const errors = [], results = {}, requests = [];
 
 
   // ---- checks ----
-  assert.deepEqual(results.menuItems.map(x => x.replace(/^\S+\s/, '')), ["Today's games", 'League leaders', 'Find a player', 'Compare players', 'My teams', 'Help & info']);
+  assert.deepEqual(results.menuItems.map(x => x.replace(/^\S+\s/, '')), ["Today's games", 'League leaders', 'Find a player', 'Compare players', 'My teams', 'Sign in', 'Help & info']);
   assert.equal(results.gameCards[0][0], 'Bot 5th', 'live inning shown');
   assert.equal(results.gameCards[1][0], 'Final/10', 'extra innings shown');
   assert.match(results.gameCards[1][3], /W: Gerrit Cole/);

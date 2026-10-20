@@ -1,5 +1,6 @@
 // app.js — Starts the app: sets up every feature in order, then loads the data.
 // This is the only script the page loads; everything else is imported from here.
+import { account, openAccount, setupAccount } from "./account.js";
 import { SEASON } from "./api.js";
 import { compare, setupCompare } from "./compare.js";
 import { openFindPlayer, setupFindPlayer } from "./find-player.js";
@@ -44,6 +45,7 @@ const fromMenu = (btnId, open) => {
 };
 fromMenu("gamesBtn", openGames);
 fromMenu("leadersBtn", openLeaders);
+fromMenu("accountMenuBtn", openAccount);
 fromMenu("findPlayerBtn", openFindPlayer);
 fromMenu("favoritesBtn", () => {
     const section = document.getElementById("favorites-section");
@@ -60,6 +62,7 @@ setupRefresh();
 setupInstall();
 setupUpcoming();
 setupWorldSeries();
+setupAccount();
 
 // Every time standings load (first visit, season change, Refresh)
 let playerParamHandled = false;
@@ -83,4 +86,4 @@ loadData();
 applyCompareParams(); // shared links: ?compare=ID,ID opens the comparison
 
 // Handy for poking around in the browser console (the tests use it too)
-window.mlbApp = { state, games, compare };
+window.mlbApp = { state, games, compare, account };
