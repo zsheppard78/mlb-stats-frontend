@@ -1,6 +1,7 @@
 // =========================
 // CONFIG
 // =========================
+const BACKEND = "https://mlb-stats-backend-1.onrender.com";
 const MLB_API = "https://statsapi.mlb.com/api/v1";
 
 // The MLB regular season runs roughly April–October. Before April, show last season.
@@ -26,7 +27,7 @@ function divisionKey(division) {
     return DIVISION_IDS[division.id] || DIVISION_NAMES[division.name] || DIVISION_NAMES[division.nameShort] || null;
 }
 
-const logoUrl = id => `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${id}.svg`;
+const logoUrl = id => `https://www.mlbstatic.com/team-logos/${id}.svg`;
 const logoFallbackUrl = id => `https://www.mlbstatic.com/team-logos/${id}.svg`;
 const headshotUrl = (id, w = 120) =>
     `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_${w},q_auto:best/v1/people/${id}/headshot/67/current`;
@@ -91,56 +92,57 @@ document.addEventListener("error", e => {
 // =========================
 // TEAM THEME SYSTEM
 // =========================
+// Team color set tuned for white/very-light backgrounds
 const teamThemes = {
-    "New York Yankees": { accent: "#0C2340", highlight: "#C4CED4", bg: "#0A0C10" },
-    "Boston Red Sox": { accent: "#BD3039", highlight: "#0D2B56", bg: "#0A0C10" },
-    "Tampa Bay Rays": { accent: "#092C5C", highlight: "#8FBCE6", bg: "#00285D" },
-    "Toronto Blue Jays": { accent: "#134A8E", highlight: "#1D2D5C", bg: "#0A0C10" },
-    "Baltimore Orioles": { accent: "#DF4601", highlight: "#000000", bg: "#0A0C10" },
+    "New York Yankees":      { accent: "#0C2340", highlight: "#0C2340", bg: "#ffffff" },
+    "Boston Red Sox":        { accent: "#BD3039", highlight: "#BD3039", bg: "#ffffff" },
+    "Tampa Bay Rays":        { accent: "#092C5C", highlight: "#092C5C", bg: "#ffffff" },
+    "Toronto Blue Jays":     { accent: "#134A8E", highlight: "#134A8E", bg: "#ffffff" },
+    "Baltimore Orioles":     { accent: "#DF4601", highlight: "#DF4601", bg: "#ffffff" },
 
-    "Minnesota Twins": { accent: "#002B5C", highlight: "#D31145", bg: "#0A0C10" },
-    "Cleveland Guardians": { accent: "#0C2340", highlight: "#E31937", bg: "#0A0C10" },
-    "Chicago White Sox": { accent: "#000000", highlight: "#C4CED4", bg: "#0A0C10" },
-    "Detroit Tigers": { accent: "#0C2340", highlight: "#FA4616", bg: "#0A0C10" },
-    "Kansas City Royals": { accent: "#004687", highlight: "#C09A5B", bg: "#0A0C10" },
+    "Minnesota Twins":       { accent: "#002B5C", highlight: "#002B5C", bg: "#ffffff" },
+    "Cleveland Guardians":   { accent: "#0C2340", highlight: "#E31937", bg: "#ffffff" },
+    "Chicago White Sox":     { accent: "#000000", highlight: "#000000", bg: "#ffffff" },
+    "Detroit Tigers":        { accent: "#0C2340", highlight: "#FA4616", bg: "#ffffff" },
+    "Kansas City Royals":    { accent: "#004687", highlight: "#7A6A4F", bg: "#ffffff" },
 
-    "Houston Astros": { accent: "#002D62", highlight: "#EB6E1F", bg: "#0A0C10" },
-    "Texas Rangers": { accent: "#003278", highlight: "#C0111F", bg: "#0A0C10" },
-    "Seattle Mariners": { accent: "#003278", highlight: "#0C2C56", bg: "#0A0C10" },
-    "Los Angeles Angels": { accent: "#BA0021", highlight: "#003263", bg: "#0A0C10" },
-    "Oakland Athletics": { accent: "#003831", highlight: "#EFB21E", bg: "#0A0C10" },
+    "Houston Astros":        { accent: "#002D62", highlight: "#EB6E1F", bg: "#ffffff" },
+    "Texas Rangers":         { accent: "#003278", highlight: "#C0111F", bg: "#ffffff" },
+    "Seattle Mariners":      { accent: "#003278", highlight: "#0C2C56", bg: "#ffffff" },
+    "Los Angeles Angels":    { accent: "#BA0021", highlight: "#003263", bg: "#ffffff" },
+    "Oakland Athletics":     { accent: "#003831", highlight: "#EFB21E", bg: "#ffffff" },
 
-    "Atlanta Braves": { accent: "#0E2340", highlight: "#CE1141", bg: "#0A0C10" },
-    "Philadelphia Phillies": { accent: "#E81828", highlight: "#002D72", bg: "#0A0C10" },
-    "New York Mets": { accent: "#002D72", highlight: "#FF5910", bg: "#0A0C10" },
-    "Miami Marlins": { accent: "#00A3E0", highlight: "#EF3340", bg: "#0A0C10" },
-    "Washington Nationals": { accent: "#AB0003", highlight: "#14225A", bg: "#0A0C10" },
+    "Atlanta Braves":        { accent: "#0E2340", highlight: "#CE1141", bg: "#ffffff" },
+    "Philadelphia Phillies": { accent: "#E81828", highlight: "#002D72", bg: "#ffffff" },
+    "New York Mets":         { accent: "#002D72", highlight: "#FF5910", bg: "#ffffff" },
+    "Miami Marlins":         { accent: "#00A3E0", highlight: "#EF3340", bg: "#ffffff" },
+    "Washington Nationals":  { accent: "#AB0003", highlight: "#14225A", bg: "#ffffff" },
 
-    "Chicago Cubs": { accent: "#0E3386", highlight: "#CC3433", bg: "#0A0C10" },
-    "Milwaukee Brewers": { accent: "#12284B", highlight: "#FFC52F", bg: "#0A0C10" },
-    "St. Louis Cardinals": { accent: "#C41E3A", highlight: "#FEDB00", bg: "#0A0C10" },
-    "Pittsburgh Pirates": { accent: "#000000", highlight: "#FFB81C", bg: "#0A0C10" },
-    "Cincinnati Reds": { accent: "#C6011F", highlight: "#000000", bg: "#0A0C10" },
+    "Chicago Cubs":          { accent: "#0E3386", highlight: "#CC3433", bg: "#ffffff" },
+    "Milwaukee Brewers":     { accent: "#12284B", highlight: "#FFC52F", bg: "#ffffff" },
+    "St. Louis Cardinals":   { accent: "#C41E3A", highlight: "#FEDB00", bg: "#ffffff" },
+    "Pittsburgh Pirates":    { accent: "#000000", highlight: "#FFB81C", bg: "#ffffff" },
+    "Cincinnati Reds":       { accent: "#C6011F", highlight: "#333333", bg: "#ffffff" },
 
-    "Los Angeles Dodgers": { accent: "#005A9C", highlight: "#EF3E42", bg: "#0A0C10" },
-    "San Diego Padres": { accent: "#2F241D", highlight: "#FFC425", bg: "#0A0C10" },
-    "San Francisco Giants": { accent: "#FD5A1E", highlight: "#27251F", bg: "#0A0C10" },
-    "Arizona Diamondbacks": { accent: "#A71930", highlight: "#E3D4AD", bg: "#0A0C10" },
-    "Colorado Rockies": { accent: "#33006F", highlight: "#C4CED4", bg: "#0A0C10" }
+    "Los Angeles Dodgers":   { accent: "#005A9C", highlight: "#EF3E42", bg: "#ffffff" },
+    "San Diego Padres":      { accent: "#2F241D", highlight: "#FFC425", bg: "#ffffff" },
+    "San Francisco Giants":  { accent: "#FD5A1E", highlight: "#27251F", bg: "#ffffff" },
+    "Arizona Diamondbacks":  { accent: "#A71930", highlight: "#5F574F", bg: "#ffffff" },
+    "Colorado Rockies":      { accent: "#33006F", highlight: "#4F5B66", bg: "#ffffff" }
 };
 // The A's are listed as just "Athletics" by MLB since their move
 teamThemes["Athletics"] = teamThemes["Oakland Athletics"];
 
+// Site-wide themes (picked in the ☰ Settings menu)
 const presetThemes = {
-    classic: { accent: "#ffd700", highlight: "#00b7ff", bg: "#0b0d11" },
-    dodger: { accent: "#3d9bff", highlight: "#ef3e42", bg: "#08101c" },
-    cardinal: { accent: "#e0313f", highlight: "#fedb00", bg: "#120a0b" },
-    green: { accent: "#efb21e", highlight: "#2fbf7f", bg: "#07120f" },
-    night: { accent: "#a5b4fc", highlight: "#94a3b8", bg: "#000000" }
+    classic:   { accent: "#007BFF", highlight: "#0056b3", bg: "#ffffff" },
+    cleanblue: { accent: "#0051A8", highlight: "#1A1A1A", bg: "#F9FBFF" },
+    graysoft:  { accent: "#444444", highlight: "#222222", bg: "#FAFAFA" },
+    night:     { accent: "#58a6ff", highlight: "#C9D1D9", bg: "#0D1117" }
 };
 
-// --- color contrast helpers: team colors like navy or black are unreadable
-// on a dark background, so lighten them until text is readable (WCAG 4.5:1).
+// --- color contrast helpers: some team colors (yellow on white, navy on black)
+// are hard to read, so nudge them darker/lighter until text is readable (WCAG 4.5:1).
 function hexToRgb(hex) {
     let h = hex.replace("#", "");
     if (h.length === 3) h = h.split("").map(c => c + c).join("");
@@ -163,33 +165,42 @@ function contrastRatio(a, b) {
 function readableOn(hex, bgHex, minRatio = 4.5) {
     const base = hexToRgb(hex);
     const bg = hexToRgb(bgHex);
+    const target = luminance(bg) > 0.4 ? 0 : 255; // darken on light backgrounds, lighten on dark
     let t = 0;
     let rgb = base;
     while (contrastRatio(rgb, bg) < minRatio && t < 1) {
         t += 0.05;
-        rgb = base.map(c => c + (255 - c) * t);
+        rgb = base.map(c => c + (target - c) * t);
     }
     return rgbToHex(rgb);
 }
 
 function applyColors({ accent, highlight, bg }) {
-    // If the main team color is too dark to read but the second color isn't
-    // (e.g. Brewers navy + gold), lead with the brighter one.
+    // If the main team color is hard to read but the second color isn't, lead with the readable one.
     const bgRgb = hexToRgb(bg);
     if (contrastRatio(hexToRgb(accent), bgRgb) < 3 && contrastRatio(hexToRgb(highlight), bgRgb) >= 3) {
         [accent, highlight] = [highlight, accent];
     }
-    const root = document.documentElement.style;
-    root.setProperty("--bg", bg);
-    root.setProperty("--accent", readableOn(accent, bg));
-    root.setProperty("--highlight", readableOn(highlight, bg));
+    const accentHex = readableOn(accent, bg);
+    const root = document.documentElement;
+    root.dataset.mode = luminance(bgRgb) > 0.4 ? "light" : "dark";
+    root.style.setProperty("--bg", bg);
+    root.style.setProperty("--accent", accentHex);
+    root.style.setProperty("--highlight", readableOn(highlight, bg));
+    // Text color used on top of the accent color (header, active tabs, buttons)
+    const acc = hexToRgb(accentHex);
+    root.style.setProperty("--on-accent",
+        contrastRatio(acc, [255, 255, 255]) >= contrastRatio(acc, [17, 17, 17]) ? "#ffffff" : "#111111");
 }
 
 function getThemeChoice() {
     const saved = localStorage.getItem("themeChoice");
-    if (saved) return saved;
-    // Older versions saved a team theme automatically; keep using it for those visitors.
-    return localStorage.getItem("favoriteTeamTheme") ? "team" : "classic";
+    if (saved && (saved === "team" || presetThemes[saved])) return saved;
+    // Visitors from the older version: keep their team colors or site theme
+    const autoTeam = (localStorage.getItem("autoTeamTheme") || "on").toLowerCase() !== "off";
+    if (autoTeam && teamThemes[localStorage.getItem("favoriteTeamTheme")]) return "team";
+    const oldUI = localStorage.getItem("selectedUITheme");
+    return presetThemes[oldUI] ? oldUI : "classic";
 }
 
 function applyThemeChoice(choice) {
@@ -256,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadTeamList() {
     // 1) Your own backend (on Render). 2) Fall back to the MLB API directly.
     try {
-        const data = await fetchJSON("/api/teams", 60000);
+        const data = await fetchJSON(`${BACKEND}/api/teams`, 60000);
         if (Array.isArray(data.teams) && data.teams.length) return data.teams;
     } catch (err) {
         console.warn("Backend /api/teams unavailable, using MLB API directly.", err);
@@ -318,6 +329,12 @@ async function loadData() {
         showStatus("warn", "Teams loaded, but standings couldn't be loaded right now.", true);
     } else {
         hideStatus();
+    }
+
+    // Links like index.html?team=158 (used by the Favorites page) open that team's roster
+    const teamParam = new URLSearchParams(location.search).get("team");
+    if (teamParam && teamById(teamParam) && !anyModalOpen()) {
+        openRosterModal(teamById(teamParam));
     }
 }
 
@@ -657,7 +674,7 @@ function setupMenu() {
     document.getElementById("resetThemeBtn").addEventListener("click", () => {
         localStorage.removeItem("favoriteTeamTheme");
         setThemeChoice("classic");
-        showToast("Theme reset to Classic (Gold)");
+        showToast("Theme reset to Classic (Blue on White)");
     });
 
     // Help
@@ -681,7 +698,7 @@ function openModal(id, opener) {
     if (!modal.hidden) return;
     modal.hidden = false;
     modalStack.push({ id, returnFocus: opener || document.activeElement });
-    document.body.classList.add("no-scroll");
+    document.documentElement.classList.add("no-scroll");
     modal.querySelector(".close-btn")?.focus();
 }
 
@@ -691,7 +708,7 @@ function closeModal(id) {
     modal.hidden = true;
     const idx = modalStack.findIndex(m => m.id === id);
     const entry = idx >= 0 ? modalStack.splice(idx, 1)[0] : null;
-    if (!modalStack.length) document.body.classList.remove("no-scroll");
+    if (!modalStack.length) document.documentElement.classList.remove("no-scroll");
     if (entry?.returnFocus && document.contains(entry.returnFocus)) entry.returnFocus.focus();
 }
 

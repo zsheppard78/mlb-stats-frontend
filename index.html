@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Baseball Teams Explorer</title>
-    <meta name="description" content="Browse MLB standings, team rosters and player stats." />
+    <title>MLB Stats Explorer ⚾</title>
+
+    <!-- Meta for SEO & sharing -->
+    <meta name="description" content="Explore MLB team stats, rosters, and standings with a sleek, dynamic interface. Built by Zachary Sheppard." />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="https://www.mlbstatic.com/team-logos/158.svg">
+
+    <!-- Styles (bump ?v= when you change the file so browsers don't use an old copy) -->
+    <link rel="stylesheet" href="style.css?v=6" />
 </head>
 
 <body>
@@ -16,7 +25,7 @@
 <header class="site-header">
     <button class="menu-icon" id="menuBtn" aria-label="Open settings" aria-expanded="false" aria-controls="sideMenu">☰</button>
     <div class="title-wrap">
-        <h1>⚾ Baseball Teams Explorer</h1>
+        <h1>⚾ MLB Stats Explorer</h1>
         <p class="subtitle" id="seasonLabel">MLB standings, rosters &amp; player stats</p>
     </div>
     <button class="icon-btn help-btn-header" id="helpBtnHeader" aria-label="Help">?</button>
@@ -34,10 +43,9 @@
         <div class="menu-item">
             <label for="theme">Color theme</label>
             <select id="theme">
-                <option value="classic">Classic (Gold)</option>
-                <option value="dodger">Dodger Blue</option>
-                <option value="cardinal">Cardinal Red</option>
-                <option value="green">Oakland Green</option>
+                <option value="classic">Classic (Blue on White)</option>
+                <option value="cleanblue">Clean Blue</option>
+                <option value="graysoft">Soft Gray</option>
                 <option value="night">Night Mode</option>
                 <option value="team">My favorite team's colors</option>
             </select>
@@ -49,7 +57,10 @@
         </div>
     </div>
 
-    <button class="menu-item help-link" id="helpBtn">❓ Help &amp; Info</button>
+    <div class="menu-links">
+        <a class="menu-item help-link" href="favorites.html">⭐ Favorite Teams</a>
+        <button class="menu-item help-link" id="helpBtn">❓ Help &amp; Info</button>
+    </div>
 </nav>
 <div class="menu-backdrop" id="menuBackdrop" hidden></div>
 
@@ -190,6 +201,11 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="script.js"></script>
+<footer class="site-footer">
+    ⚾ Built by Zachary Sheppard — MLB Stats Explorer © 2025
+</footer>
+
+<!-- Updated script version for cache busting -->
+<script src="script.js?v=8"></script>
 </body>
 </html>
