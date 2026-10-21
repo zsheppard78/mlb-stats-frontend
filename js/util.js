@@ -33,14 +33,6 @@ export function showToast(message) {
     }, 2500);
 }
 
-// Img fallback for team logos (some teams may not have the dark-background version)
-document.addEventListener("error", e => {
-    const img = e.target;
-    if (img.tagName === "IMG" && img.dataset.fallback && img.src !== img.dataset.fallback) {
-        img.src = img.dataset.fallback;
-    }
-}, true);
-
 export function formatDate(iso) {
     if (!iso) return "—";
     const d = new Date(iso + "T12:00:00");

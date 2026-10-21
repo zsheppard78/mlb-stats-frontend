@@ -1,6 +1,6 @@
 // standings.js — Loads teams and standings, draws the division tables and My teams, the season picker, and Refresh.
 
-import { DIVISION_IDS, SEASON, divisionKey, getStandings, getTeams, logoFallbackUrl, logoUrl } from "./api.js";
+import { DIVISION_IDS, SEASON, divisionKey, getStandings, getTeams, logoUrl } from "./api.js";
 import { anyModalOpen } from "./modals.js";
 import { applySearch } from "./search.js";
 import { state, teamById } from "./state.js";
@@ -123,7 +123,7 @@ function teamCardHTML(team) {
     return `
         <div class="team-card" role="button" tabindex="0" data-team-id="${team.id}"
              aria-label="${esc(team.name)}: view roster">
-            <img src="${logoUrl(team.id)}" data-fallback="${logoFallbackUrl(team.id)}" class="team-logo" alt="" loading="lazy">
+            <img src="${logoUrl(team.id)}" class="team-logo" alt="" loading="lazy">
             <span class="team-text">
                 <span class="team-name">${esc(team.name)}</span>
                 <span class="team-record">${recordText(team.id)}</span>
@@ -173,7 +173,7 @@ function renderDivisions(records) {
                 <tr class="standings-row ${isFav ? "fav-row" : ""}" data-team-id="${t.id}" tabindex="0"
                     aria-label="${esc(t.name)}: view roster">
                     <td class="team-cell"><div class="team-cell-inner">
-                        <img src="${logoUrl(t.id)}" data-fallback="${logoFallbackUrl(t.id)}" alt="" class="mini-logo" loading="lazy">
+                        <img src="${logoUrl(t.id)}" alt="" class="mini-logo" loading="lazy">
                         <span class="full-name">${esc(t.name)}</span>
                         <span class="short-name">${esc(t.abbreviation || t.teamName || t.name)}</span>
                         ${clinch && CLINCH[clinch] ? `<span class="clinch" title="${CLINCH[clinch]}">${clinch}</span>` : ""}

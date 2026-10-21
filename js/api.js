@@ -30,8 +30,6 @@ export function divisionKey(division) {
 
 export const logoUrl = id => `https://www.mlbstatic.com/team-logos/${id}.svg`;
 
-export const logoFallbackUrl = id => `https://www.mlbstatic.com/team-logos/${id}.svg`;
-
 export const headshotUrl = (id, w = 120) =>
     `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_${w},q_auto:best/v1/people/${id}/headshot/67/current`;
 

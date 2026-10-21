@@ -1,6 +1,6 @@
 // team.js — Team window: roster with sortable stats, and the Games tab (recent results, coming up).
 
-import { getRoster, getTeamSchedule, headshotUrl, logoFallbackUrl, logoUrl } from "./api.js";
+import { getRoster, getTeamSchedule, headshotUrl, logoUrl } from "./api.js";
 import { gameStatus } from "./games.js";
 import { openModal } from "./modals.js";
 import { recordText } from "./standings.js";
@@ -87,7 +87,6 @@ export async function openRosterModal(team, opener) {
 
     document.getElementById("teamNameModal").textContent = team.name;
     const logo = document.getElementById("teamLogoModal");
-    logo.dataset.fallback = logoFallbackUrl(team.id);
     logo.src = logoUrl(team.id);
     document.getElementById("rosterSub").textContent = recordText(team.id)
         ? `${recordText(team.id)} · ${state.season} season stats`

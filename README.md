@@ -1,10 +1,34 @@
 # ⚾ StatDugout
 
-A fast, mobile-friendly web app for following Major League Baseball: standings, rosters, live scores, league leaders, player careers and side-by-side player comparisons, for any season back to 1969.
+[![Tests](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/tests.yml/badge.svg)](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/tests.yml)
+![Vanilla JS](https://img.shields.io/badge/JavaScript-ES%20modules-F7DF1E)
+![Playwright](https://img.shields.io/badge/tested%20with-Playwright-2EAD33)
 
-**Live site:** [mlb-stats-frontend.onrender.com](https://mlb-stats-frontend.onrender.com)
+A fast, mobile-friendly web app for following Major League Baseball: standings, rosters, live scores, league leaders, player careers and side-by-side player comparisons for any season back to 1969, with accounts that save your favorite teams.
 
-![Standings](docs/standings.png)
+**Live site:** [mlb-stats-frontend.onrender.com](https://mlb-stats-frontend.onrender.com) · **Backend:** [zsheppard78/mlb-stats-backend](https://github.com/zsheppard78/mlb-stats-backend) (Spring Boot + PostgreSQL)
+
+![StatDugout home page](docs/home.png)
+
+## Tech stack
+
+| | |
+|---|---|
+| **Frontend** | HTML, CSS, vanilla JavaScript (ES modules, no framework or build step), service worker (PWA) |
+| **Backend** | Java 17, Spring Boot 3, JDBC, Flyway, bcrypt; Docker on Render ([repo](https://github.com/zsheppard78/mlb-stats-backend)) |
+| **Database** | PostgreSQL on Neon |
+| **Auth** | Username + password, and Sign in with Google (Google Identity Services) |
+| **Data** | MLB Stats API |
+| **Testing / CI** | Playwright browser tests with every API mocked; JUnit + MockMvc on the backend; GitHub Actions |
+
+## Engineering highlights
+
+- **Page load cut from ~2 s to ~1 s, and from 30+ s to ~1 s when the backend is asleep.** I measured the live site, found a three-step script loading chain and a blocking call to the free-tier backend, then fixed both: every module is preloaded in parallel, and the page no longer depends on the backend to draw (it only pings it awake for sign-in). A test checks that a sleeping backend can't slow the page down again.
+- **One request per roster.** A full roster with every player's season stats loads in one call using the API's `hydrate` option, instead of 26+ calls.
+- **Favorites that sync without getting in the way.** Favorites work signed out (saved in the browser). Signing in merges them into the account, and later changes save in the background, in order, without blocking the page.
+- **Readable team colors.** Team color themes run through a WCAG 2.1 contrast check (4.5:1) and are lightened or darkened until text is readable.
+- **Reliable tests.** Four Playwright suites drive the real page in headless Chromium with every MLB and backend call mocked: standings, search, seasons, players, compare, games, leaders, share links, phone layouts, sign-up/sign-in, Google sign-in, syncing across devices, and expired sessions.
+- **Accessible.** Full keyboard use (`/` to search, `Esc` to close), focus management in windows, screen-reader labels, and reduced-motion support.
 
 ## Features
 
@@ -23,11 +47,11 @@ A fast, mobile-friendly web app for following Major League Baseball: standings, 
 - **Installable:** works as an app on your phone or desktop, and shows the last data you loaded when you're offline.
 - **Accessible:** keyboard navigation (`/` to search, `Esc` to close), screen-reader labels, readable contrast in every theme, and it respects reduced-motion settings.
 
-| Today's games | Player career chart | Compare players |
-|---|---|---|
-| ![Today's games](docs/todays-games.png) | ![Career chart](docs/player-career-chart.png) | ![Compare players](docs/compare-players.png) |
+| Today's games | Player career chart | Compare players | Phone |
+|---|---|---|---|
+| ![Today's games](docs/todays-games.png) | ![Career chart](docs/player-career-chart.png) | ![Compare players](docs/compare-players.png) | ![Phone layout](docs/mobile.png) |
 
-_Screenshots use sample data from the test suite._
+_Screenshots use sample data from the test suite, so team logos show as colored circles._
 
 ## How it works
 
@@ -42,9 +66,7 @@ Browser (this repo: HTML + CSS + vanilla JS)
 ```
 
 - **No framework, no build step.** Plain HTML, CSS and JavaScript, served as static files.
-- **Few requests.** A whole roster with every player's stats loads in one request using the API's `hydrate` option, instead of one request per player.
-- **Fast first view.** Every script is preloaded in parallel, and the standings, upcoming games and World Series load at the same time, straight from the MLB API. The free Render backend (which sleeps when idle) is only needed for accounts, so it never holds up the page; it gets a wake-up ping as the page opens.
-- **Readable team colors.** Team themes run through a WCAG contrast check (4.5:1) and are lightened or darkened until text is readable.
+- **Accounts.** Sign-in returns a bearer token that the browser keeps and sends to the backend; the backend stores only a hash of it. Account data is never cached by the service worker.
 - **Offline-friendly.** A service worker (`sw.js`) uses network-first caching, so you get fresh data when online and the last data you saw when offline.
 
 ### Project layout
@@ -85,7 +107,7 @@ Stylesheets load in this order: `base.css` (colors, fonts, light/dark tokens), `
 
 ## Running it locally
 
-It's a static site, so any local web server works:
+It's a static site, so any local web server works. Signing in needs the backend (see its README); everything else works on its own.
 
 ```bash
 # from the project folder
@@ -95,7 +117,7 @@ python -m http.server 8000
 
 ## Tests
 
-The `tests/` folder has browser tests that drive the real page in headless Chromium. Every MLB API call is mocked with realistic data, so the tests are fast, run offline and never fail because of real-world data. They cover standings, search, favorites, themes, sorting, keyboard use, season switching, career stats, traded players, compare, today's games, leaders, player search, game logs, splits, charts, share links, the backend-down fallback and phone layouts.
+The `tests/` folder has browser tests that drive the real page in headless Chromium. Every MLB API call is mocked with realistic data, so the tests are fast, run offline and never fail because of real-world data. They cover standings, search, favorites, themes, sorting, keyboard use, season switching, career stats, traded players, compare, today's games, leaders, player search, game logs, splits, charts, share links, phone layouts, and accounts (sign-up, sign-in, Google, syncing favorites across devices, expired sessions, and a sleeping backend not slowing the page). The backend is faked too, so no real accounts are touched.
 
 ```bash
 cd tests
