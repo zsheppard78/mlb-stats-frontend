@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MLB Stats Explorer ⚾</title>
+    <title>StatDugout ⚾ MLB standings, stats and scores</title>
 
     <!-- Meta for SEO & sharing -->
-    <meta name="description" content="Explore MLB team stats, rosters, and standings with a sleek, dynamic interface. Built by Zachary Sheppard." />
+    <meta name="description" content="StatDugout: MLB standings, rosters, player stats, league leaders, live scores and player comparisons for every season since 1969. Built by Zachary Sheppard." />
     <meta name="theme-color" content="#1F6B45" />
+
+    <!-- Start connecting to the data and image servers right away -->
+    <link rel="preconnect" href="https://statsapi.mlb.com" crossorigin>
+    <link rel="preconnect" href="https://www.mlbstatic.com">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,18 +24,43 @@
     <link rel="manifest" href="manifest.webmanifest">
 
     <!-- Styles, one file per part of the page (bump ?v= after changes so browsers don't keep an old copy) -->
-    <link rel="stylesheet" href="css/base.css?v=14" />
-    <link rel="stylesheet" href="css/layout.css?v=14" />
-    <link rel="stylesheet" href="css/home.css?v=14" />
-    <link rel="stylesheet" href="css/windows.css?v=14" />
-    <link rel="stylesheet" href="css/team.css?v=14" />
-    <link rel="stylesheet" href="css/player.css?v=14" />
-    <link rel="stylesheet" href="css/compare.css?v=14" />
-    <link rel="stylesheet" href="css/games.css?v=14" />
-    <link rel="stylesheet" href="css/leaders.css?v=14" />
-    <link rel="stylesheet" href="css/find-player.css?v=14" />
-    <link rel="stylesheet" href="css/charts.css?v=14" />
-    <link rel="stylesheet" href="css/account.css?v=14" />
+    <link rel="stylesheet" href="css/base.css?v=16" />
+    <link rel="stylesheet" href="css/layout.css?v=16" />
+    <link rel="stylesheet" href="css/home.css?v=16" />
+    <link rel="stylesheet" href="css/windows.css?v=16" />
+    <link rel="stylesheet" href="css/team.css?v=16" />
+    <link rel="stylesheet" href="css/player.css?v=16" />
+    <link rel="stylesheet" href="css/compare.css?v=16" />
+    <link rel="stylesheet" href="css/games.css?v=16" />
+    <link rel="stylesheet" href="css/leaders.css?v=16" />
+    <link rel="stylesheet" href="css/find-player.css?v=16" />
+    <link rel="stylesheet" href="css/charts.css?v=16" />
+    <link rel="stylesheet" href="css/account.css?v=16" />
+
+    <!-- Download every script at once (otherwise the browser finds them one import at a time) -->
+    <link rel="modulepreload" href="js/app.js?v=16">
+    <link rel="modulepreload" href="js/account.js">
+    <link rel="modulepreload" href="js/api.js">
+    <link rel="modulepreload" href="js/career.js">
+    <link rel="modulepreload" href="js/charts.js">
+    <link rel="modulepreload" href="js/compare.js">
+    <link rel="modulepreload" href="js/find-player.js">
+    <link rel="modulepreload" href="js/games.js">
+    <link rel="modulepreload" href="js/leaders.js">
+    <link rel="modulepreload" href="js/menu.js">
+    <link rel="modulepreload" href="js/modals.js">
+    <link rel="modulepreload" href="js/player.js">
+    <link rel="modulepreload" href="js/pwa.js">
+    <link rel="modulepreload" href="js/search.js">
+    <link rel="modulepreload" href="js/share.js">
+    <link rel="modulepreload" href="js/standings.js">
+    <link rel="modulepreload" href="js/state.js">
+    <link rel="modulepreload" href="js/team-postseason.js">
+    <link rel="modulepreload" href="js/team.js">
+    <link rel="modulepreload" href="js/theme.js">
+    <link rel="modulepreload" href="js/upcoming.js">
+    <link rel="modulepreload" href="js/util.js">
+    <link rel="modulepreload" href="js/world-series.js">
 </head>
 
 <body>
@@ -39,7 +68,7 @@
 <header class="site-header">
     <button class="menu-icon" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sideMenu">☰</button>
     <div class="title-wrap">
-        <h1>MLB Stats Explorer</h1>
+        <h1>StatDugout</h1>
         <p class="season-tile" aria-label="Season"><span id="seasonLabel"></span></p>
     </div>
     <button class="account-btn" id="accountBtn" aria-haspopup="dialog" aria-label="Sign in">
@@ -346,7 +375,7 @@
 <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
     <div class="modal-content help-modal">
         <div class="modal-head">
-            <h2 id="helpTitle">How to use MLB Stats Explorer</h2>
+            <h2 id="helpTitle">How to use StatDugout</h2>
             <button class="close-btn" id="closeHelp" aria-label="Close help">&times;</button>
         </div>
         <ul class="help-list">
@@ -415,11 +444,11 @@
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
 <footer class="site-footer">
-    ⚾ Built by Zachary Sheppard — MLB Stats Explorer © 2025
+    ⚾ StatDugout · Built by Zachary Sheppard © 2026
     <button class="link-btn install-btn" id="installBtn" hidden>Install as an app</button>
 </footer>
 
 <!-- One entry point; js/app.js imports everything else -->
-<script type="module" src="js/app.js?v=14"></script>
+<script type="module" src="js/app.js?v=16"></script>
 </body>
 </html>

@@ -21,5 +21,5 @@ export function setupInstall() {
         installPrompt = null;
         btn.hidden = true;
     });
-    window.addEventListener("appinstalled", () => { btn.hidden = true; showToast("Installed. Look for MLB Stats on your home screen."); });
+    window.addEventListener("appinstalled", () => { btn.hidden = true; showToast("Installed. Look for StatDugout on your home screen."); });
 }

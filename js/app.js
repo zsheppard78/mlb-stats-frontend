@@ -1,7 +1,7 @@
 // app.js — Starts the app: sets up every feature in order, then loads the data.
 // This is the only script the page loads; everything else is imported from here.
 import { account, openAccount, setupAccount } from "./account.js";
-import { SEASON } from "./api.js";
+import { SEASON, wakeBackend } from "./api.js";
 import { compare, setupCompare } from "./compare.js";
 import { openFindPlayer, setupFindPlayer } from "./find-player.js";
 import { games, openGames, setupGames } from "./games.js";
@@ -66,13 +66,18 @@ setupAccount();
 
 // Every time standings load (first visit, season change, Refresh)
 let playerParamHandled = false;
+let homeSectionsSeason = null; // season the Upcoming and World Series sections were started for
 document.addEventListener("mlb:data-loaded", event => {
     if (event.detail.ok) {
         state.lastUpdated = new Date();
         updateUpdatedLine();
     }
-    loadUpcoming();
-    renderWorldSeries();
+    // On the first load these already started alongside the standings (below)
+    if (homeSectionsSeason !== state.season) {
+        loadUpcoming();
+        renderWorldSeries();
+    }
+    homeSectionsSeason = null;
 
     // Shared links: ?player=ID opens that player once
     if (!playerParamHandled) {
@@ -82,7 +87,12 @@ document.addEventListener("mlb:data-loaded", event => {
     }
 });
 
+wakeBackend();
 loadData();
+// Upcoming games and the World Series don't need the standings, so load them at the same time
+homeSectionsSeason = state.season;
+loadUpcoming();
+renderWorldSeries();
 applyCompareParams(); // shared links: ?compare=ID,ID opens the comparison
 
 // Handy for poking around in the browser console (the tests use it too)

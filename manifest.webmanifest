@@ -1,6 +1,6 @@
 {
-  "name": "MLB Stats Explorer",
-  "short_name": "MLB Stats",
+  "name": "StatDugout",
+  "short_name": "StatDugout",
   "description": "MLB standings, rosters, player stats, leaders and today's games.",
   "start_url": "./",
   "scope": "./",

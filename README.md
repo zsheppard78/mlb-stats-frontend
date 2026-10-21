@@ -1,8 +1,8 @@
-# ⚾ MLB Stats Explorer
+# ⚾ StatDugout
 
 A fast, mobile-friendly web app for following Major League Baseball: standings, rosters, live scores, league leaders, player careers and side-by-side player comparisons, for any season back to 1969.
 
-**Live site:** _add your Render URL here_
+**Live site:** [mlb-stats-frontend.onrender.com](https://mlb-stats-frontend.onrender.com)
 
 ![Standings](docs/standings.png)
 
@@ -34,9 +34,7 @@ _Screenshots use sample data from the test suite._
 ```
 Browser (this repo: HTML + CSS + vanilla JS)
    │
-   ├── Team list ───────────► Java backend on Render  (/api/teams)
-   │                             └─ falls back to the MLB API if the backend is asleep
-   ├── Sign-in, favorites ──► Java backend  (/api/auth/*, /api/me, /api/favorites)
+   ├── Sign-in, favorites ──► Java backend on Render  (/api/auth/*, /api/me, /api/favorites)
    │                             └─ stored in Postgres on Neon
    │
    └── Everything else ─────► MLB Stats API (statsapi.mlb.com)
@@ -45,7 +43,7 @@ Browser (this repo: HTML + CSS + vanilla JS)
 
 - **No framework, no build step.** Plain HTML, CSS and JavaScript, served as static files.
 - **Few requests.** A whole roster with every player's stats loads in one request using the API's `hydrate` option, instead of one request per player.
-- **Handles a sleeping backend.** Free Render services sleep when idle. The app shows a "waking up" message and switches to the MLB API directly if the backend doesn't answer.
+- **Fast first view.** Every script is preloaded in parallel, and the standings, upcoming games and World Series load at the same time, straight from the MLB API. The free Render backend (which sleeps when idle) is only needed for accounts, so it never holds up the page; it gets a wake-up ping as the page opens.
 - **Readable team colors.** Team themes run through a WCAG contrast check (4.5:1) and are lightened or darkened until text is readable.
 - **Offline-friendly.** A service worker (`sw.js`) uses network-first caching, so you get fresh data when online and the last data you saw when offline.
 

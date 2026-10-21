@@ -49,8 +49,11 @@ async function fetchJSON(url, timeoutMs = 20000) {
 
 // Every request the app makes lives below, so the data source can change in one place
 // (for example, routing more calls through the Java backend later).
-export async function getTeamsFromBackend() {
-    return fetchJSON(`${BACKEND}/api/teams`, 60000); // free Render apps can take a while to wake up
+// The free Render backend sleeps after 15 idle minutes and takes up to a minute to wake.
+// Nudge it awake as the page opens, so it's ready by the time someone signs in.
+// (/api/ping doesn't touch the database, so it doesn't use Neon's free hours.)
+export function wakeBackend() {
+    fetch(`${BACKEND}/api/ping`, { cache: "no-store" }).catch(() => { /* asleep or offline; sign-in will wait */ });
 }
 
 export async function getTeams(season) {

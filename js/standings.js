@@ -1,6 +1,6 @@
 // standings.js — Loads teams and standings, draws the division tables and My teams, the season picker, and Refresh.
 
-import { DIVISION_IDS, SEASON, divisionKey, getStandings, getTeams, getTeamsFromBackend, logoFallbackUrl, logoUrl } from "./api.js";
+import { DIVISION_IDS, SEASON, divisionKey, getStandings, getTeams, logoFallbackUrl, logoUrl } from "./api.js";
 import { anyModalOpen } from "./modals.js";
 import { applySearch } from "./search.js";
 import { state, teamById } from "./state.js";
@@ -8,14 +8,9 @@ import { openRosterModal, teamGamesCache } from "./team.js";
 import { applyThemeChoice, getThemeChoice } from "./theme.js";
 import { esc, showToast, writeJSON } from "./util.js";
 
+// Straight from the MLB API: it answers in a fraction of a second, while the free Render
+// backend can take up to a minute to wake up. (The backend is only needed for accounts.)
 async function loadTeamList() {
-    // 1) Your own backend (on Render). 2) Fall back to the MLB API directly.
-    try {
-        const data = await getTeamsFromBackend();
-        if (Array.isArray(data.teams) && data.teams.length) return data.teams;
-    } catch (err) {
-        console.warn("Backend /api/teams unavailable, using MLB API directly.", err);
-    }
     const data = await getTeams(state.season);
     return data.teams;
 }
@@ -32,9 +27,8 @@ export async function loadData() {
     showStatus("loading", loadingSeason === SEASON
         ? "Loading teams and standings…"
         : `Loading ${loadingSeason} standings…`);
-    // Free Render apps go to sleep and take a while to wake up. Tell the user why it's slow.
     const slowTimer = setTimeout(() => {
-        showStatus("loading", "Still loading… the server may be waking up. This can take up to a minute the first time.");
+        showStatus("loading", "Still loading… this is taking longer than usual.");
     }, 5000);
 
     // Past seasons: the teams come straight from that year's standings
@@ -60,7 +54,7 @@ export async function loadData() {
 
     // Teams (fall back to the teams inside the standings data if needed)
     let teams = teamsResult.status === "fulfilled" ? teamsResult.value : null;
-    if (!teams && records.length) {
+    if (!teams?.length && records.length) {
         teams = records.flatMap(div => div.teamRecords.map(tr => ({ ...tr.team, division: div.division })));
     }
 

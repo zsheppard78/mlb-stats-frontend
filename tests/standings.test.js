@@ -185,7 +185,7 @@ const roster = { roster: [
     page.on('pageerror', e => errors.push(`[favpage] ${e.message}`));
     await page.route('**/*', async route => {
       const url = route.request().url();
-      if (url.includes('onrender.com/api/teams')) return route.fulfill({ json: apiTeams, headers: { 'access-control-allow-origin': '*' } });
+      if (url.includes('statsapi.mlb.com/api/v1/teams?')) return route.fulfill({ json: apiTeams, headers: { 'access-control-allow-origin': '*' } });
       if (url.startsWith('http://app.test/')) return route.fulfill({ path: path.join(APP, new URL(url).pathname) });
       return route.fulfill({ status: 204, body: '' });
     });

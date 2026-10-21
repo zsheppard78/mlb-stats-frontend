@@ -22,7 +22,7 @@ const standings = { records: divs.map(([id, name, teams]) => ({ division: { id, 
 const apiTeams = { teams: divs.flatMap(([id, name, teams]) => teams.map(([tid]) => ({ ...T[tid], division: { id, name } }))) };
 
 // ---------------------------------------------------------------- fake backend (same rules as the Java one)
-const db = { users: [], sessions: new Map(), favorites: new Map(), slowLogin: false };
+const db = { users: [], sessions: new Map(), favorites: new Map(), slowLogin: false, asleep: false };
 const userBody = u => ({ id: u.id, username: u.username || null, displayName: u.displayName, google: !!u.google });
 function signedIn(u) {
   const token = 'tok-' + Math.random().toString(36).slice(2);
@@ -33,6 +33,7 @@ function backend(method, pathname, body, auth) {
   const me = db.users.find(u => u.id === db.sessions.get((auth || '').replace('Bearer ', '')));
   const need = () => me ? null : [401, { error: 'Please sign in again.' }];
   if (pathname === '/api/teams') return [200, apiTeams];
+  if (pathname === '/api/ping') { db.pings = (db.pings || 0) + 1; return [200, { status: 'ok' }]; }
   if (pathname === '/api/auth/config') return [200, { passwordSignIn: true, googleClientId: 'test-client.apps.googleusercontent.com' }];
   if (pathname === '/api/auth/register') {
     const username = body.username.trim().toLowerCase();
@@ -88,11 +89,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       if (u.hostname.endsWith('onrender.com')) {
         if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
         if (db.slowLogin && u.pathname === '/api/auth/login') await sleep(3600);
+        if (db.asleep) return; // a sleeping Render backend: the request just hangs
         const [status, body] = backend(req.method(), u.pathname, req.postDataJSON?.() || {}, req.headers().authorization);
         return route.fulfill({ status, json: body, headers: cors });
       }
       if (u.hostname === 'app.test') return route.fulfill({ path: path.join(APP, u.pathname) });
       if (u.pathname.endsWith('/standings')) return route.fulfill({ json: standings });
+      if (u.pathname.endsWith('/api/v1/teams')) return route.fulfill({ json: apiTeams });
       if (u.pathname.includes('/awards/')) return route.fulfill({ json: { awards: [] } });
       if (u.hostname === 'statsapi.mlb.com') return route.fulfill({ json: { dates: [], teams: [] } });
       if (/fonts\.(googleapis|gstatic)\.com/.test(u.hostname)) return route.fulfill({ contentType: 'text/css', body: '' });
@@ -116,6 +119,17 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const myTeams = page => page.$$eval('#favoritesGrid .team-card', cards => cards.map(c => Number(c.dataset.teamId)));
   const star = (page, id) => page.click(`.standings-row[data-team-id="${id}"] .favorite-star`);
   const serverFavs = username => db.favorites.get(db.users.find(u => u.username === username || (username === 'google' && u.google)).id);
+
+  // 0) A sleeping backend doesn't hold up the page, and the page pings it awake
+  db.asleep = true;
+  const sleepy = await newContext();
+  const started = Date.now();
+  await open(sleepy);
+  const waited = Date.now() - started;
+  assert.ok(waited < 3000, `standings took ${waited} ms while the backend was asleep`);
+  await sleepy.close();
+  db.asleep = false;
+  const pingsBefore = db.pings || 0;
 
   // 1) Phone: a favorite picked before signing up carries over into the new account
   const phone = await newContext();
@@ -149,6 +163,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   assert.equal(await page.textContent('#accountAvatar'), 'Z');
   assert.equal(await page.textContent('#accountMenuLabel'), 'My account');
   assert.deepEqual(serverFavs('zach_s'), [158]);
+  assert.ok((db.pings || 0) > pingsBefore, 'page pings the backend awake');
 
   // 2) Star changes save to the account, in order
   await star(page, 112);
