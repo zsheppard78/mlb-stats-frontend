@@ -108,7 +108,8 @@ export function openAccount(opener) {
     clearError();
     openModal("accountModal", opener);
     if (!account.user) {
-        setTimeout(() => $("acctUsername").focus(), 30);
+        // Right away: a delayed focus could pull the cursor back while someone is already typing
+        $("acctUsername").focus();
         loadGoogleButton();
     }
 }

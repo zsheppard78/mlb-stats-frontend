@@ -1,6 +1,6 @@
 # ⚾ StatDugout
 
-[![Tests](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/tests.yml/badge.svg)](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/tests.yml)
+[![Tests](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/test.yml/badge.svg)](https://github.com/zsheppard78/mlb-stats-frontend/actions/workflows/test.yml)
 ![Vanilla JS](https://img.shields.io/badge/JavaScript-ES%20modules-F7DF1E)
 ![Playwright](https://img.shields.io/badge/tested%20with-Playwright-2EAD33)
 

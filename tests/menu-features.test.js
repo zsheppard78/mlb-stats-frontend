@@ -1,5 +1,7 @@
 // Tests for: Today's games, League leaders, Find a player, game log, splits, charts,
 // team Games tab, share links / deep links, refresh, menu.
+// Same results on every machine: Chicago time (GitHub's runners use UTC), and a fixed time of day (below)
+process.env.TZ = 'America/Chicago';
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const path = require('path');
@@ -11,6 +13,8 @@ const pad = n => String(n).padStart(2, '0');
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const TODAY = iso(new Date());
 const plus = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+// A local clock time on a given day, as the API's UTC timestamp
+const at = (day, time) => new Date(`${day}T${time}:00`).toISOString();
 
 const divs = [
   [201, 'American League East', [[139,'Tampa Bay Rays','TB'],[147,'New York Yankees','NYY'],[111,'Boston Red Sox','BOS'],[110,'Baltimore Orioles','BAL'],[141,'Toronto Blue Jays','TOR']]],
@@ -27,7 +31,7 @@ const standings = { records: divs.map(([id, name, teams]) => ({ division: { id, 
 const apiTeams = { teams: divs.flatMap(([id, name, teams]) => teams.map(([tid]) => ({ ...T[tid], division: { id, name } }))) };
 
 const game = (pk, away, home, opts = {}) => ({
-  gamePk: pk, gameDate: opts.gameDate || `${TODAY}T23:05:00Z`, officialDate: opts.date || TODAY, gameType: opts.gameType || 'R',
+  gamePk: pk, gameDate: opts.gameDate || at(TODAY, '18:05'), officialDate: opts.date || TODAY, gameType: opts.gameType || 'R',
   status: opts.status || { abstractGameState: 'Preview', detailedState: 'Scheduled' },
   seriesStatus: opts.series, description: opts.series?.shortDescription, seriesDescription: opts.seriesDescription, seriesGameNumber: opts.gameNumber,
   teams: {
@@ -44,7 +48,7 @@ const todayGames = [
 const teamSchedule = Array.from({ length: 16 }, (_, i) => {
   const d = plus(i - 12);
   const final = i < 12;
-  return game(100 + i, i % 2 ? 158 : 112, i % 2 ? 112 : 158, { date: d, gameDate: `${d}T23:05:00Z`,
+  return game(100 + i, i % 2 ? 158 : 112, i % 2 ? 112 : 158, { date: d, gameDate: at(d, '18:05'),
     status: final ? { abstractGameState: 'Final', detailedState: 'Final' } : { abstractGameState: 'Preview', detailedState: 'Scheduled' },
     as: final ? (i % 3) + 2 : undefined, hs: final ? (i % 4) + 1 : undefined,
     gameType: i >= 10 ? 'W' : 'R', seriesDescription: i >= 10 ? 'World Series' : undefined, gameNumber: i >= 10 ? i - 9 : undefined });
@@ -77,8 +81,10 @@ const errors = [], results = {}, requests = [];
   const browser = await chromium.launch();
 
   async function newPage({ viewport = { width: 1280, height: 900 }, url = 'index.html', storage = {} } = {}) {
-    const ctx = await browser.newContext({ serviceWorkers: 'block', viewport, permissions: ['clipboard-read', 'clipboard-write'] });
+    const ctx = await browser.newContext({ serviceWorkers: 'block', viewport, timezoneId: 'America/Chicago', permissions: ['clipboard-read', 'clipboard-write'] });
     const page = await ctx.newPage();
+    // Noon today: today's 6:05 PM game is always still "upcoming", whenever the tests run
+    await page.clock.setFixedTime(new Date(`${TODAY}T12:00:00`));
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
     await page.route('**/*', route => {
@@ -131,7 +137,7 @@ const errors = [], results = {}, requests = [];
         if (q.get('teamId')) return json(route, { dates: teamSchedule.map(g => ({ date: g.officialDate, games: [g] })) });
         if (q.get('startDate') === TODAY) {
           // Upcoming games section: today's games plus a game in 9 days
-          return json(route, { dates: [{ date: TODAY, games: todayGames }, { date: plus(9), games: [{ ...todayGames[2], gamePk: 9, gameDate: `${plus(9)}T23:05:00Z` }] }] });
+          return json(route, { dates: [{ date: TODAY, games: todayGames }, { date: plus(9), games: [{ ...todayGames[2], gamePk: 9, gameDate: at(plus(9), '18:05') }] }] });
         }
         if (q.get('startDate')) {
           const forward = q.get('startDate') > TODAY;
